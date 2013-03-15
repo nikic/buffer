@@ -94,6 +94,9 @@ typedef struct _buffer_view_object {
 	size_t offset;
 	size_t length;
 
+	/* For Iterator methods */
+	size_t current_offset;
+
 	buffer_view_type type;
 } buffer_view_object;
 
@@ -725,6 +728,68 @@ PHP_FUNCTION(array_buffer_view_offset_unset)
 	zend_throw_exception(NULL, "Cannot unset offsets in a typed array", 0 TSRMLS_CC);
 }
 
+PHP_FUNCTION(array_buffer_view_rewind)
+{
+	buffer_view_object *intern;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern->current_offset = 0;
+}
+
+PHP_FUNCTION(array_buffer_view_next)
+{
+	buffer_view_object *intern;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern->current_offset++;
+}
+
+PHP_FUNCTION(array_buffer_view_valid)
+{
+	buffer_view_object *intern;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	RETURN_BOOL(intern->current_offset < intern->length);
+}
+
+PHP_FUNCTION(array_buffer_view_key)
+{
+	buffer_view_object *intern;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	RETURN_LONG((long) intern->current_offset);
+}
+
+PHP_FUNCTION(array_buffer_view_current)
+{
+	buffer_view_object *intern;
+	zval *value;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	value = buffer_view_offset_get(intern, intern->current_offset);
+	RETURN_ZVAL(value, 1, 1);
+}
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_ctor, 0, 0, 1)
 	ZEND_ARG_INFO(0, length)
 ZEND_END_ARG_INFO()
@@ -747,6 +812,9 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_view_offset_set, 0, 0, 2)
 	ZEND_ARG_INFO(0, value)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_view_void, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry array_buffer_view_functions[] = {
 	PHP_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_buffer_view_ctor, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
 
@@ -755,6 +823,13 @@ const zend_function_entry array_buffer_view_functions[] = {
 	PHP_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_buffer_view_offset_set, ZEND_ACC_PUBLIC)
 	PHP_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_buffer_view_offset, ZEND_ACC_PUBLIC)
 	PHP_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_buffer_view_offset, ZEND_ACC_PUBLIC)
+
+	/* Iterator */
+	PHP_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(next, array_buffer_view_next, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(valid, array_buffer_view_valid, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(key, array_buffer_view_key, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(current, array_buffer_view_current, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };
@@ -774,7 +849,7 @@ PHP_MINIT_FUNCTION(buffer)
 	type##_array_ce->get_iterator = buffer_view_get_iterator;                \
 	type##_array_ce->iterator_funcs.funcs = &buffer_view_iterator_funcs;     \
 	zend_class_implements(type##_array_ce TSRMLS_CC, 2,                      \
-		zend_ce_arrayaccess, zend_ce_traversable);
+		zend_ce_arrayaccess, zend_ce_iterator);
 
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(Int8Array,   int8);
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(UInt8Array,  uint8);
