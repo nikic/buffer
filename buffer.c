@@ -30,6 +30,9 @@
 #include "zend_exceptions.h"
 #include "zend_interfaces.h"
 
+#include "ext/standard/php_var.h"
+#include "ext/standard/php_smart_str.h"
+
 #if defined(PHP_WIN32)
 # include "win32/php_stdint.h"
 #elif defined(HAVE_STDINT_H)
@@ -213,6 +216,99 @@ PHP_METHOD(ArrayBuffer, __construct)
 	intern->length = length;
 
 	memset(intern->buffer, 0, length);
+}
+
+PHP_METHOD(ArrayBuffer, serialize)
+{
+	buffer_object *intern;
+	smart_str buf = {0};
+	php_serialize_data_t var_hash;
+	zval zv;
+	zval *zv_ptr = &zv;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	if (!intern->buffer) {
+		return;
+	}
+
+	PHP_VAR_SERIALIZE_INIT(var_hash);
+
+	INIT_PZVAL(zv_ptr);
+
+	/* Serialize buffer as string */
+	ZVAL_STRINGL(zv_ptr, (char *) intern->buffer, (int) intern->length, 0);
+	php_var_serialize(&buf, &zv_ptr, &var_hash TSRMLS_CC);
+
+	/* Serialize properties as array */
+	Z_ARRVAL_P(zv_ptr) = zend_std_get_properties(getThis() TSRMLS_CC);
+	Z_TYPE_P(zv_ptr) = IS_ARRAY;
+	php_var_serialize(&buf, &zv_ptr, &var_hash TSRMLS_CC);
+
+	PHP_VAR_SERIALIZE_DESTROY(var_hash);
+
+	if (buf.c) {
+		RETURN_STRINGL(buf.c, buf.len, 0);
+	}
+}
+
+PHP_METHOD(ArrayBuffer, unserialize)
+{
+	buffer_object *intern;
+	char *str;
+	int str_len;
+	php_unserialize_data_t var_hash;
+	const unsigned char *p, *max;
+	zval zv, *zv_ptr = &zv;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &str, &str_len) == FAILURE) {
+		return;
+	}
+
+	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+
+	if (intern->buffer) {
+		zend_throw_exception(
+			NULL, "Cannot call unserialize() on an already constructed object", 0 TSRMLS_CC
+		);
+		return;
+	}
+
+	PHP_VAR_UNSERIALIZE_INIT(var_hash);
+
+	p = (unsigned char *) str;
+	max = (unsigned char *) str + str_len;
+
+	INIT_ZVAL(zv);
+	if (!php_var_unserialize(&zv_ptr, &p, max, &var_hash TSRMLS_CC)
+	    || Z_TYPE_P(zv_ptr) != IS_STRING || Z_STRLEN_P(zv_ptr) == 0) {
+		zend_throw_exception(NULL, "Could not unserialize buffer", 0 TSRMLS_CC);
+		goto exit;
+	}
+
+	intern->buffer = Z_STRVAL_P(zv_ptr);
+	intern->length = Z_STRLEN_P(zv_ptr);
+
+	INIT_ZVAL(zv);
+	if (!php_var_unserialize(&zv_ptr, &p, max, &var_hash TSRMLS_CC)
+	    || Z_TYPE_P(zv_ptr) != IS_ARRAY) {
+		zend_throw_exception(NULL, "Could not unserialize properties", 0 TSRMLS_CC);
+		goto exit;
+	}
+
+	if (zend_hash_num_elements(Z_ARRVAL_P(zv_ptr)) != 0) {
+		zend_hash_copy(
+			zend_std_get_properties(getThis() TSRMLS_CC), Z_ARRVAL_P(zv_ptr),
+			(copy_ctor_func_t) zval_add_ref, NULL, sizeof(zval *)
+		);
+	}
+
+exit:
+	zval_dtor(zv_ptr);
+	PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
 }
 
 static void array_buffer_view_free_object_storage(buffer_view_object *intern TSRMLS_DC)
@@ -794,8 +890,17 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_ctor, 0, 0, 1)
 	ZEND_ARG_INFO(0, length)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_void, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_unserialize, 0, 0, 1)
+	ZEND_ARG_INFO(0, serialized)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry array_buffer_functions[] = {
 	PHP_ME(ArrayBuffer, __construct, arginfo_buffer_ctor, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+	PHP_ME(ArrayBuffer, serialize, arginfo_buffer_void, ZEND_ACC_PUBLIC)
+	PHP_ME(ArrayBuffer, unserialize, arginfo_buffer_unserialize, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 
@@ -841,6 +946,7 @@ PHP_MINIT_FUNCTION(buffer)
 	INIT_CLASS_ENTRY(tmp_ce, "ArrayBuffer", array_buffer_functions);
 	array_buffer_ce = zend_register_internal_class(&tmp_ce TSRMLS_CC);
 	array_buffer_ce->create_object = array_buffer_create_object;
+	zend_class_implements(array_buffer_ce TSRMLS_CC, 1, zend_ce_serializable);
 
 #define DEFINE_ARRAY_BUFFER_VIEW_CLASS(class_name, type)                     \
 	INIT_CLASS_ENTRY(tmp_ce, #class_name, array_buffer_view_functions);      \
