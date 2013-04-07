@@ -588,21 +588,51 @@ static int array_buffer_view_compare_objects(zval *obj1, zval *obj2 TSRMLS_DC)
 	if (memcmp(intern1, intern2, sizeof(buffer_view_object)) == 0) {
 		return 0; /* equal */
 	} else {
-		return 1; /* there is no smaller/greater relationship, but we have to return
-		           * something, so use "greater" */
+		return 1; /* not orderable */
 	}
+}
+
+static HashTable *array_buffer_view_get_debug_info(zval *obj, int *is_temp TSRMLS_DC)
+{
+	buffer_view_object *intern = zend_object_store_get_object(obj TSRMLS_CC);	
+	HashTable *props = Z_OBJPROP_P(obj);
+	HashTable *ht;
+	int i;
+
+	ALLOC_HASHTABLE(ht);
+	ZEND_INIT_SYMTABLE_EX(ht, intern->length + zend_hash_num_elements(props), 0);
+	zend_hash_copy(ht, props, (copy_ctor_func_t) zval_add_ref, NULL, sizeof(zval *));
+
+	*is_temp = 1;
+
+	for (i = 0; i < intern->length; ++i) {
+		zval *value = buffer_view_offset_get(intern, i);
+		zend_hash_index_update(ht, i, (void *) &value, sizeof(zval *), NULL);
+	}
+	
+	return ht;
 }
 
 static HashTable *array_buffer_view_get_properties(zval *obj TSRMLS_DC)
 {
 	buffer_view_object *intern = zend_object_store_get_object(obj TSRMLS_CC);	
 	HashTable *ht = zend_std_get_properties(obj TSRMLS_CC);
-	int i;
+	zval *zv;
 
-	for (i = 0; i < intern->length; ++i) {
-		zval *value = buffer_view_offset_get(intern, i);
-		zend_hash_index_update(ht, i, (void *) &value, sizeof(zval *), NULL);
+	if (!intern->buffer_zval) {
+		return ht;
 	}
+
+	Z_ADDREF_P(intern->buffer_zval);
+	zend_hash_update(ht, "buffer", sizeof("buffer"), &intern->buffer_zval, sizeof(zval *), NULL);
+
+	MAKE_STD_ZVAL(zv);
+	ZVAL_LONG(zv, intern->offset);
+	zend_hash_update(ht, "offset", sizeof("offset"), &zv, sizeof(zval *), NULL);
+
+	MAKE_STD_ZVAL(zv);
+	ZVAL_LONG(zv, intern->length);
+	zend_hash_update(ht, "length", sizeof("length"), &zv, sizeof(zval *), NULL);
 	
 	return ht;
 }
@@ -754,6 +784,59 @@ PHP_FUNCTION(array_buffer_view_ctor)
 
 	view_intern->buf.as_int8 = buffer_intern->buffer;
 	view_intern->buf.as_int8 += offset;
+}
+
+PHP_FUNCTION(array_buffer_view_wakeup)
+{
+	buffer_view_object *intern;
+	HashTable *props;
+	zval **buffer_zv, **offset_zv, **length_zv;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+
+	if (intern->buffer_zval) {
+		zend_throw_exception(
+			NULL, "Cannot call __wakeup() on an already constructed object", 0 TSRMLS_CC
+		);
+		return;
+	}
+
+	props = zend_std_get_properties(getThis() TSRMLS_CC);
+
+	if (zend_hash_find(props, "buffer", sizeof("buffer"), (void **) &buffer_zv) == SUCCESS
+	 && zend_hash_find(props, "offset", sizeof("offset"), (void **) &offset_zv) == SUCCESS
+	 && zend_hash_find(props, "length", sizeof("length"), (void **) &length_zv) == SUCCESS
+	 && Z_TYPE_PP(buffer_zv) == IS_OBJECT
+	 && Z_TYPE_PP(offset_zv) == IS_LONG && Z_LVAL_PP(offset_zv) >= 0
+	 && Z_TYPE_PP(length_zv) == IS_LONG && Z_LVAL_PP(length_zv) > 0
+	 && instanceof_function(Z_OBJCE_PP(buffer_zv), array_buffer_ce TSRMLS_CC)
+	) {
+		buffer_object *buffer_intern = zend_object_store_get_object(*buffer_zv TSRMLS_CC);
+		size_t offset = Z_LVAL_PP(offset_zv), length = Z_LVAL_PP(length_zv);
+		size_t bytes_per_element = buffer_view_get_bytes_per_element(intern);
+		size_t max_length = (buffer_intern->length - offset) / bytes_per_element;
+
+		if (offset < buffer_intern->length && length <= max_length) {
+			Z_ADDREF_PP(buffer_zv);
+			intern->buffer_zval = *buffer_zv;
+
+			intern->offset = offset;
+			intern->length = length;
+
+			intern->buf.as_int8 = buffer_intern->buffer;
+			intern->buf.as_int8 += offset;
+
+			return;
+		}
+	}
+
+	zend_throw_exception(
+		NULL, "Invalid serialization data", 0 TSRMLS_CC
+	);
 }
 
 PHP_FUNCTION(array_buffer_view_offset_get)
@@ -922,6 +1005,7 @@ ZEND_END_ARG_INFO()
 
 const zend_function_entry array_buffer_view_functions[] = {
 	PHP_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_buffer_view_ctor, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+	PHP_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
 
 	/* ArrayAccess */
 	PHP_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_buffer_view_offset, ZEND_ACC_PUBLIC)
@@ -978,6 +1062,7 @@ PHP_MINIT_FUNCTION(buffer)
 	array_buffer_view_handlers.has_dimension   = array_buffer_view_has_dimension;
 	array_buffer_view_handlers.unset_dimension = array_buffer_view_unset_dimension;
 	array_buffer_view_handlers.compare_objects = array_buffer_view_compare_objects;
+	array_buffer_view_handlers.get_debug_info = array_buffer_view_get_debug_info;
 	array_buffer_view_handlers.get_properties  = array_buffer_view_get_properties;
 
 	return SUCCESS;
