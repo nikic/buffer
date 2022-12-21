@@ -1,16 +1,12 @@
-Typed array implementation using buffers
-----------------------------------------
-
-This PHP extension provides typed arrays based on JavaScript's ArrayBuffer interface.
-
-This extension has been written primarily as a small example for a tutorial and not for its actual
-functionality. That's also why it does not contain the full functionality of JS ArrayBuffers. I may
-add the remaining functionality later on.
-
-Usage
------
-
-```php
+--TEST--
+Buffer BasicTests - Simple Test
+--DESCRIPTION--
+Test access
+--CREDITS--
+Nikita Popov
+--SKIPIF--
+<?php if(!extension_loaded('buffer')) die('skip buffer n/a'); ?>
+--FILE--
 <?php
 
 /* First create an ArrayBuffer with a certain size (in this example 8MB). The array buffer itself
@@ -35,27 +31,8 @@ var_dump($floats[0]); // float(1.7292023049768E-42)
  * an unsigned 16-bit integer view that starts 32 bytes into the buffer and contains 1024 elements.
  */
 $uint16s = new UInt16Array($buffer, 32, 1024);
-```
+?>
+--EXPECT--
+int(1234)
+float(1.7292023049768E-42)
 
-The following buffer views are available:
-
-    Int8Array
-    UInt8Array
-    Int16Array
-    Uint16Array
-    Int32Array
-    UInt32Array
-    FloatArray
-    DoubleArray
-
-See `tests/` for more examples.
-
-Installation
-------------
-
-The extension is installed as usual:
-
-    phpize
-    ./configure --enable-buffer
-    make
-    make install
