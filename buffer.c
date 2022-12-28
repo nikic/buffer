@@ -560,8 +560,9 @@ static HashTable *array_buffer_view_get_properties(zval *obj)
 
 static void buffer_view_iterator_dtor(zend_object_iterator *intern)
 {
-	buffer_view_iterator *iter = (buffer_view_iterator *) intern;
-	efree(iter);
+	buffer_view_iterator *iter = (buffer_view_iterator*) intern;
+	zval_ptr_dtor(&iter->intern.data);
+	zval_ptr_dtor(&iter->current);
 }
 
 static int buffer_view_iterator_valid(zend_object_iterator *intern)
