@@ -12,7 +12,7 @@ extern zend_module_entry buffer_module_entry;
 #      define PHP_BUFFER_API __attribute__ ((visibility("default")))
 #else
 #      define PHP_BUFFER_API
-#end
+#endif
 
 #ifdef ZTS
 #include "TSRM.h"
