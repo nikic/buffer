@@ -146,7 +146,7 @@ PHP_METHOD(ArrayBuffer, serialize)
 	PHP_VAR_SERIALIZE_INIT(var_hash);
 
 	/* Serialize buffer as string */
-        zend_string *zstr = zend_string_init((char*) intern->buffer, (size_t) intern->length, 0);
+        zend_string *zstr = zend_string_init((char*) intern->buffer, intern->length, 0);
 	ZVAL_STR(&zv, zstr);
 	php_var_serialize(&buf, &zv, &var_hash);
 	zend_string_release(zstr);
