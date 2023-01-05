@@ -859,15 +859,13 @@ PHP_FUNCTION(array_buffer_view_key)
 PHP_FUNCTION(array_buffer_view_current)
 {
 	buffer_view_object *intern;
-	zval value;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
 	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
-	buffer_view_offset_get(intern, intern->current_offset, &value);
-	RETURN_ZVAL(&value, 1, 0);
+	buffer_view_offset_get(intern, intern->current_offset, return_value);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_ctor, 0, 0, 1)
