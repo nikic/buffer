@@ -200,7 +200,7 @@ PHP_METHOD(ArrayBuffer, unserialize)
 		zend_throw_exception(NULL, "Could not unserialize buffer: no data", 0);
 		goto exit;
         }
-        if(Z_TYPE_P(zbuf) != IS_STRING) {
+        if (Z_TYPE_P(zbuf) != IS_STRING) {
 		zend_throw_exception(NULL, "Could not unserialize buffer: not a string", 0);
 		goto exit;
        }
