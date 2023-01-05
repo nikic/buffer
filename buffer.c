@@ -177,9 +177,6 @@ PHP_METHOD(ArrayBuffer, unserialize)
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &str, &str_len) == FAILURE) {
 		return;
 	}
-	if (str_len == 0) {
-		return;
-	}
 
 	intern = Z_BUFFER_OBJ_P(getThis());
 
@@ -462,11 +459,9 @@ static int array_buffer_view_has_dimension(zval *object, zval *zv_offset, int ch
 	}
 
 	if (check_empty) {
-		int retval;
 		zval value;
-			    buffer_view_offset_get(intern, offset, &value);
-		retval = zend_is_true(&value);
-		return retval;
+		buffer_view_offset_get(intern, offset, &value);
+		return zend_is_true(&value);
 	}
 
 	return 1;

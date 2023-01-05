@@ -17,7 +17,6 @@ extern zend_module_entry buffer_module_entry;
 #ifdef ZTS
 #include "TSRM.h"
 #endif
-#pragma once
 
 #if defined(ZTS) && defined(COMPILE_DL_BUFFER)
 ZEND_TSRMLS_CACHE_EXTERN();
