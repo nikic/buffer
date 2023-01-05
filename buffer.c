@@ -367,7 +367,7 @@ void buffer_view_offset_get(buffer_view_object *intern, size_t offset, zval *ret
 	}
 }
 
-void buffer_view_offset_set(buffer_view_object *intern, long offset, zval *value)
+void buffer_view_offset_set(buffer_view_object *intern, zend_long offset, zval *value)
 {
 	if (intern->type == buffer_view_float || intern->type == buffer_view_double) {
 		if (intern->type == buffer_view_float) {
