@@ -400,7 +400,7 @@ void buffer_view_offset_set(buffer_view_object *intern, long offset, zval *value
 	}
 }
 
-static zval* array_buffer_view_read_dimension(zval *object, zval *zv_offset, int type, zval *retval)
+static zval *array_buffer_view_read_dimension(zval *object, zval *zv_offset, int type, zval *retval)
 {
 	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(object);
 	zend_long offset;
