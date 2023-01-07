@@ -1,8 +1,8 @@
 /*
   +----------------------------------------------------------------------+
-  | PHP Version 5                                                        |
+  | PHP Version 7                                                        |
   +----------------------------------------------------------------------+
-  | Copyright (c) 1997-2012 The PHP Group                                |
+  | Copyright (c) 1997-2022 The PHP Group                                |
   +----------------------------------------------------------------------+
   | This source file is subject to version 3.01 of the PHP license,      |
   | that is bundled with this package in the file LICENSE, and is        |
@@ -24,14 +24,16 @@
 
 #include "php.h"
 #include "php_ini.h"
+#include "php_globals.h"
 #include "ext/standard/info.h"
+#include "ext/standard/basic_functions.h"
 #include "php_buffer.h"
 
 #include "zend_exceptions.h"
 #include "zend_interfaces.h"
 
 #include "ext/standard/php_var.h"
-#include "ext/standard/php_smart_str.h"
+#include "zend_smart_str_public.h"
 
 #if defined(PHP_WIN32)
 # include "win32/php_stdint.h"
@@ -39,76 +41,11 @@
 # include <stdint.h>
 #endif
 
-zend_module_entry buffer_module_entry = {
-#if ZEND_MODULE_API_NO >= 20010901
-	STANDARD_MODULE_HEADER,
-#endif
-	"buffer",
-	NULL,
-	PHP_MINIT(buffer),
-	NULL,
-	NULL,	
-	NULL,
-	NULL,
-#if ZEND_MODULE_API_NO >= 20010901
-	"0.1",
-#endif
-	STANDARD_MODULE_PROPERTIES
-};
 
 #ifdef COMPILE_DL_BUFFER
 ZEND_GET_MODULE(buffer)
 #endif
 
-typedef struct _buffer_object {
-	zend_object std;
-
-	void *buffer;
-	size_t length;
-} buffer_object;
-
-typedef enum _buffer_view_type {
-	buffer_view_int8,
-	buffer_view_uint8,
-	buffer_view_int16,
-	buffer_view_uint16,
-	buffer_view_int32,
-	buffer_view_uint32,
-	buffer_view_float,
-	buffer_view_double
-} buffer_view_type;
-
-typedef struct _buffer_view_object {
-	zend_object std;
-
-	zval *buffer_zval;
-
-	union {
-		int8_t   *as_int8;
-		uint8_t  *as_uint8;
-		int16_t  *as_int16;
-		uint16_t *as_uint16;
-		int32_t  *as_int32;
-		uint32_t *as_uint32;
-		float    *as_float;
-		double   *as_double;
-	} buf;
-
-	size_t offset;
-	size_t length;
-
-	/* For Iterator methods */
-	size_t current_offset;
-
-	buffer_view_type type;
-} buffer_view_object;
-
-typedef struct _buffer_view_iterator {
-	zend_object_iterator intern;
-	buffer_view_object *view;
-	size_t offset;
-	zval *current;
-} buffer_view_iterator;
 
 zend_class_entry *array_buffer_ce;
 
@@ -124,63 +61,38 @@ zend_class_entry *double_array_ce;
 zend_object_handlers array_buffer_handlers;
 zend_object_handlers array_buffer_view_handlers;
 
-static long get_long_from_zval(zval *zv)
+static void array_buffer_free(zend_object *object)
 {
-	if (Z_TYPE_P(zv)) {
-		return Z_LVAL_P(zv);
-	} else {
-		long lval;
-		Z_ADDREF_P(zv);
-		convert_to_long_ex(&zv);
-		lval = Z_LVAL_P(zv);
-		zval_ptr_dtor(&zv);
-		return lval;
-	}
-}
-
-static void array_buffer_free_object_storage(buffer_object *intern TSRMLS_DC)
-{
-	zend_object_std_dtor(&intern->std TSRMLS_CC);
+	buffer_object *intern = php_buffer_fetch_object(object);
 
 	if (intern->buffer) {
 		efree(intern->buffer);
 	}
 
-	efree(intern);
+	zend_object_std_dtor(&intern->std);
 }
 
-zend_object_value array_buffer_create_object(zend_class_entry *class_type TSRMLS_DC)
+zend_object *array_buffer_create_object(zend_class_entry *class_type)
 {
-	zend_object_value retval;
+	zend_object *retval;
 
-	buffer_object *intern = emalloc(sizeof(buffer_object));
-	memset(intern, 0, sizeof(buffer_object));
+	buffer_object *intern = zend_object_alloc(sizeof(buffer_object), class_type);
+	intern->buffer = NULL;
 
-	zend_object_std_init(&intern->std, class_type TSRMLS_CC);
-	object_properties_init(&intern->std, class_type);
+	zend_object_std_init(&intern->std, class_type);
+	intern->std.handlers = &array_buffer_handlers;
 
-	retval.handle = zend_objects_store_put(intern,
-		(zend_objects_store_dtor_t) zend_objects_destroy_object,
-		(zend_objects_free_object_storage_t) array_buffer_free_object_storage,
-		NULL TSRMLS_CC
-	);
-	retval.handlers = &array_buffer_handlers;
-
-	return retval;
+	return &intern->std;
 }
 
-static zend_object_value array_buffer_clone(zval *object TSRMLS_DC)
-{
-	buffer_object *old_object = zend_object_store_get_object(object TSRMLS_CC);
-	zend_object_value new_object_val = array_buffer_create_object(Z_OBJCE_P(object) TSRMLS_CC);
-	buffer_object *new_object = zend_object_store_get_object_by_handle(
-		new_object_val.handle TSRMLS_CC
-	);
 
-	zend_objects_clone_members(
-		&new_object->std, new_object_val,
-		&old_object->std, Z_OBJ_HANDLE_P(object) TSRMLS_CC
-	);
+static zend_object *array_buffer_clone(zval *object)
+{
+	buffer_object *old_object = Z_BUFFER_OBJ_P(object);
+	zend_object *znew_object = array_buffer_create_object(Z_OBJCE_P(object));
+	buffer_object *new_object = php_buffer_fetch_object(znew_object);
+
+	zend_objects_clone_members(znew_object, Z_OBJ_P(object));
 
 	new_object->buffer = old_object->buffer;
 	new_object->length = old_object->length;
@@ -190,27 +102,24 @@ static zend_object_value array_buffer_clone(zval *object TSRMLS_DC)
 		memcpy(new_object->buffer, old_object->buffer, old_object->length);
 	}
 
-	return new_object_val;
+	return &new_object->std;
 }
 
 PHP_METHOD(ArrayBuffer, __construct)
 {
 	buffer_object *intern;
-	long length;
-	zend_error_handling error_handling;
+	zend_long length;
 
-	zend_replace_error_handling(EH_THROW, NULL, &error_handling TSRMLS_CC);
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &length) == FAILURE) {
-		zend_restore_error_handling(&error_handling TSRMLS_CC);
+	if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "l", &length) == FAILURE) {
 		return;
 	}
 
 	if (length <= 0) {
-		zend_throw_exception(NULL, "Buffer length must be positive", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Buffer length must be positive", 0);
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_OBJ_P(getThis());
 
 	intern->buffer = emalloc(length);
 	intern->length = length;
@@ -224,114 +133,126 @@ PHP_METHOD(ArrayBuffer, serialize)
 	smart_str buf = {0};
 	php_serialize_data_t var_hash;
 	zval zv;
-	zval *zv_ptr = &zv;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_OBJ_P(getThis());
 	if (!intern->buffer) {
 		return;
 	}
 
 	PHP_VAR_SERIALIZE_INIT(var_hash);
 
-	INIT_PZVAL(zv_ptr);
-
 	/* Serialize buffer as string */
-	ZVAL_STRINGL(zv_ptr, (char *) intern->buffer, (int) intern->length, 0);
-	php_var_serialize(&buf, &zv_ptr, &var_hash TSRMLS_CC);
+        zend_string *zstr = zend_string_init((char*) intern->buffer, intern->length, 0);
+	ZVAL_STR(&zv, zstr);
+	php_var_serialize(&buf, &zv, &var_hash);
+	zend_string_release(zstr);
 
 	/* Serialize properties as array */
-	Z_ARRVAL_P(zv_ptr) = zend_std_get_properties(getThis() TSRMLS_CC);
-	Z_TYPE_P(zv_ptr) = IS_ARRAY;
-	php_var_serialize(&buf, &zv_ptr, &var_hash TSRMLS_CC);
+	ZVAL_ARR(&zv, zend_std_get_properties(getThis()));
+	php_var_serialize(&buf, &zv, &var_hash);
 
 	PHP_VAR_SERIALIZE_DESTROY(var_hash);
 
-	if (buf.c) {
-		RETURN_STRINGL(buf.c, buf.len, 0);
-	}
+        if (buf.s) {
+                RETURN_NEW_STR(buf.s);
+        }
+
+        RETURN_NULL();
 }
 
 PHP_METHOD(ArrayBuffer, unserialize)
 {
 	buffer_object *intern;
 	char *str;
-	int str_len;
+	size_t str_len;
 	php_unserialize_data_t var_hash;
 	const unsigned char *p, *max;
-	zval zv, *zv_ptr = &zv;
+	zval *zbuf, *ztable;
+	zend_string *zstr;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &str, &str_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &str, &str_len) == FAILURE) {
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_OBJ_P(getThis());
 
 	if (intern->buffer) {
 		zend_throw_exception(
-			NULL, "Cannot call unserialize() on an already constructed object", 0 TSRMLS_CC
+			NULL, "Cannot call unserialize() on an already constructed object", 0
 		);
 		return;
 	}
 
 	PHP_VAR_UNSERIALIZE_INIT(var_hash);
 
-	p = (unsigned char *) str;
-	max = (unsigned char *) str + str_len;
+	p = (unsigned char*) str;
+	max = (unsigned char*) str + str_len;
 
-	INIT_ZVAL(zv);
-	if (!php_var_unserialize(&zv_ptr, &p, max, &var_hash TSRMLS_CC)
-	    || Z_TYPE_P(zv_ptr) != IS_STRING || Z_STRLEN_P(zv_ptr) == 0) {
-		zend_throw_exception(NULL, "Could not unserialize buffer", 0 TSRMLS_CC);
+	zbuf = var_tmp_var(&var_hash);
+	if (!php_var_unserialize(zbuf, &p, max, &var_hash)) {
+		zend_throw_exception(NULL, "Could not unserialize buffer: no data", 0);
+		goto exit;
+        }
+        if (Z_TYPE_P(zbuf) != IS_STRING) {
+		zend_throw_exception(NULL, "Could not unserialize buffer: not a string", 0);
+		goto exit;
+       }
+
+        zstr = zval_get_string(zbuf);
+	intern->length = ZSTR_LEN(zstr);
+        if(intern->length == 0) {
+		zend_throw_exception(NULL, "Could not unserialize buffer: empty string", 0);
+		goto exit;
+	}
+	intern->buffer = emalloc(intern->length);
+        memcpy(intern->buffer, &ZSTR_VAL(zstr), intern->length);
+        zend_string_release(zstr);
+
+	ztable = var_tmp_var(&var_hash);
+	if (!php_var_unserialize(ztable, &p, max, &var_hash)
+			|| Z_TYPE_P(ztable) != IS_ARRAY) {
+		zend_throw_exception(NULL, "Could not unserialize properties", 0);
 		goto exit;
 	}
 
-	intern->buffer = Z_STRVAL_P(zv_ptr);
-	intern->length = Z_STRLEN_P(zv_ptr);
-
-	INIT_ZVAL(zv);
-	if (!php_var_unserialize(&zv_ptr, &p, max, &var_hash TSRMLS_CC)
-	    || Z_TYPE_P(zv_ptr) != IS_ARRAY) {
-		zend_throw_exception(NULL, "Could not unserialize properties", 0 TSRMLS_CC);
-		goto exit;
-	}
-
-	if (zend_hash_num_elements(Z_ARRVAL_P(zv_ptr)) != 0) {
+	if (zend_hash_num_elements(Z_ARRVAL_P(ztable)) != 0) {
 		zend_hash_copy(
-			zend_std_get_properties(getThis() TSRMLS_CC), Z_ARRVAL_P(zv_ptr),
-			(copy_ctor_func_t) zval_add_ref, NULL, sizeof(zval *)
+			zend_std_get_properties(getThis()), Z_ARRVAL_P(ztable),
+			(copy_ctor_func_t) zval_add_ref
 		);
 	}
 
 exit:
-	zval_dtor(zv_ptr);
 	PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
 }
 
-static void array_buffer_view_free_object_storage(buffer_view_object *intern TSRMLS_DC)
+static void array_buffer_view_free(zend_object *obj)
 {
-	zend_object_std_dtor(&intern->std TSRMLS_CC);
+	buffer_view_object *intern = php_buffer_view_fetch_object(obj);
 
-	if (intern->buffer_zval) {
+	zend_object_std_dtor(&intern->std);
+
+	if (!Z_ISUNDEF(intern->buffer_zval)) {
 		zval_ptr_dtor(&intern->buffer_zval);
 	}
-
-	efree(intern);
 }
 
-zend_object_value array_buffer_view_create_object(zend_class_entry *class_type TSRMLS_DC)
+zend_object *array_buffer_view_create_object(zend_class_entry *class_type)
 {
-	zend_object_value retval;
+	zend_object *retval;
 
-	buffer_view_object *intern = emalloc(sizeof(buffer_view_object));
-	memset(intern, 0, sizeof(buffer_view_object));
+	buffer_view_object *intern = emalloc(sizeof(buffer_view_object) +
+			                                         zend_object_properties_size(class_type));
+	ZVAL_UNDEF(&intern->buffer_zval);
+	intern->offset = 0;
+	intern->length = 0;
+	intern->current_offset = 0;
 
-	zend_object_std_init(&intern->std, class_type TSRMLS_CC);
-	object_properties_init(&intern->std, class_type);
-
+	zend_object_std_init(&intern->std, class_type);
 	{
 		zend_class_entry *base_class_type = class_type;
 
@@ -361,34 +282,24 @@ zend_object_value array_buffer_view_create_object(zend_class_entry *class_type T
 		}
 	}
 
-	retval.handle = zend_objects_store_put(intern,
-		(zend_objects_store_dtor_t) zend_objects_destroy_object,
-		(zend_objects_free_object_storage_t) array_buffer_view_free_object_storage,
-		NULL TSRMLS_CC
-	);
-	retval.handlers = &array_buffer_view_handlers;
+	intern->std.handlers = &array_buffer_view_handlers;
 
-	return retval;
+	return &intern->std;
 }
 
-static zend_object_value array_buffer_view_clone(zval *object TSRMLS_DC)
+static zend_object *array_buffer_view_clone(zval *object)
 {
-	buffer_view_object *old_object = zend_object_store_get_object(object TSRMLS_CC);
-	zend_object_value new_object_val = array_buffer_view_create_object(
-		Z_OBJCE_P(object) TSRMLS_CC
+	buffer_view_object *old_object = Z_BUFFER_VIEW_OBJ_P(object);
+	zend_object *znew_object = array_buffer_view_create_object(
+		Z_OBJCE_P(object)
 	);
-	buffer_view_object *new_object = zend_object_store_get_object_by_handle(
-		new_object_val.handle TSRMLS_CC
-	);
+	buffer_view_object *new_object = php_buffer_view_fetch_object(znew_object);
 
-	zend_objects_clone_members(
-		&new_object->std, new_object_val,
-		&old_object->std, Z_OBJ_HANDLE_P(object) TSRMLS_CC
-	);
+	zend_objects_clone_members(znew_object, Z_OBJ_P(object));
 
 	new_object->buffer_zval = old_object->buffer_zval;
-	if (new_object->buffer_zval) {
-		Z_ADDREF_P(new_object->buffer_zval);
+	if (!Z_ISUNDEF(new_object->buffer_zval)) {
+                ZVAL_COPY(&new_object->buffer_zval, &old_object->buffer_zval);
 	}
 
 	new_object->buf.as_int8 = old_object->buf.as_int8;
@@ -396,7 +307,7 @@ static zend_object_value array_buffer_view_clone(zval *object TSRMLS_DC)
 	new_object->length = old_object->length;
 	new_object->type   = old_object->type;
 
-	return new_object_val;
+	return &new_object->std;
 }
 
 size_t buffer_view_get_bytes_per_element(buffer_view_object *intern)
@@ -421,11 +332,8 @@ size_t buffer_view_get_bytes_per_element(buffer_view_object *intern)
 	}
 }
 
-zval *buffer_view_offset_get(buffer_view_object *intern, size_t offset)
+void buffer_view_offset_get(buffer_view_object *intern, size_t offset, zval *retval)
 {
-	zval *retval;
-	MAKE_STD_ZVAL(retval);
-
 	switch (intern->type) {
 		case buffer_view_int8:
 			ZVAL_LONG(retval, intern->buf.as_int8[offset]); break;
@@ -454,25 +362,20 @@ zval *buffer_view_offset_get(buffer_view_object *intern, size_t offset)
 			/* Should never happen */
 			zend_error_noreturn(E_ERROR, "Invalid buffer view type");
 	}
-
-	return retval;
 }
 
-void buffer_view_offset_set(buffer_view_object *intern, long offset, zval *value)
+void buffer_view_offset_set(buffer_view_object *intern, zend_long offset, zval *value)
 {
 	if (intern->type == buffer_view_float || intern->type == buffer_view_double) {
-		Z_ADDREF_P(value);
-		convert_to_double_ex(&value);
-
 		if (intern->type == buffer_view_float) {
-			intern->buf.as_float[offset] = Z_DVAL_P(value);
+			intern->buf.as_float[offset] = zval_get_double(value);
 		} else {
-			intern->buf.as_double[offset] = Z_DVAL_P(value);
+			intern->buf.as_double[offset] = zval_get_double(value);
 		}
 
-		zval_ptr_dtor(&value);
+		zval_ptr_dtor(value);
 	} else {
-		long lval = get_long_from_zval(value);
+		zend_long lval = zval_get_long(value);
 
 		switch (intern->type) {
 			case buffer_view_int8:
@@ -494,63 +397,61 @@ void buffer_view_offset_set(buffer_view_object *intern, long offset, zval *value
 	}
 }
 
-static zval *array_buffer_view_read_dimension(zval *object, zval *zv_offset, int type TSRMLS_DC)
+static zval *array_buffer_view_read_dimension(zval *object, zval *zv_offset, int type, zval *retval)
 {
-	buffer_view_object *intern = zend_object_store_get_object(object TSRMLS_CC);
-	zval *retval;
-	long offset;
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(object);
+	zend_long offset;
 
 	if (intern->std.ce->parent) {
-		return zend_get_std_object_handlers()->read_dimension(object, zv_offset, type TSRMLS_CC);
+		return zend_get_std_object_handlers()->read_dimension(object, zv_offset, type, retval);
 	}
 	
 	if (!zv_offset) {
-		zend_throw_exception(NULL, "Cannot append to a typed array", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Cannot append to a typed array", 0);
 		return NULL;
 	}
 
-	offset = get_long_from_zval(zv_offset);
+	offset = zval_get_long(zv_offset);
 	if (offset < 0 || offset >= intern->length) {
-		zend_throw_exception(NULL, "Offset is outside the buffer range", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Offset is outside the buffer range", 0);
 		return NULL;
 	}
 
-	retval = buffer_view_offset_get(intern, offset);
-	Z_DELREF_P(retval); /* Refcount should be 0 if not referenced from ext / engine */
-	return retval;
+	buffer_view_offset_get(intern, offset, retval);
+        return retval;
 }
 
-static void array_buffer_view_write_dimension(zval *object, zval *zv_offset, zval *value TSRMLS_DC)
+static void array_buffer_view_write_dimension(zval *object, zval *zv_offset, zval *value)
 {
-	buffer_view_object *intern = zend_object_store_get_object(object TSRMLS_CC);
-	long offset;
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(object);
+	zend_long offset;
 	
 	if (intern->std.ce->parent) {
-		zend_get_std_object_handlers()->write_dimension(object, zv_offset, value TSRMLS_CC);
+		zend_get_std_object_handlers()->write_dimension(object, zv_offset, value);
 		return;
 	}
 	
 	if (!zv_offset) {
-		zend_throw_exception(NULL, "Cannot append to a typed array", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Cannot append to a typed array", 0);
 		return;
 	}
 	
-	offset = get_long_from_zval(zv_offset);
+	offset = zval_get_long(zv_offset);
 	if (offset < 0 || offset >= intern->length) {
-		zend_throw_exception(NULL, "Offset is outside the buffer range", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Offset is outside the buffer range", 0);
 		return;
 	}
 
 	buffer_view_offset_set(intern, offset, value);
 }
 
-static int array_buffer_view_has_dimension(zval *object, zval *zv_offset, int check_empty TSRMLS_DC)
+static int array_buffer_view_has_dimension(zval *object, zval *zv_offset, int check_empty)
 {
-	buffer_view_object *intern = zend_object_store_get_object(object TSRMLS_CC);
-	long offset = get_long_from_zval(zv_offset);
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(object);
+	zend_long offset = zval_get_long(zv_offset);
  
 	if (intern->std.ce->parent) {
-		return zend_get_std_object_handlers()->has_dimension(object, zv_offset, check_empty TSRMLS_CC);
+		return zend_get_std_object_handlers()->has_dimension(object, zv_offset, check_empty);
 	}
 	
 	if (offset < 0 || offset >= intern->length) {
@@ -558,152 +459,143 @@ static int array_buffer_view_has_dimension(zval *object, zval *zv_offset, int ch
 	}
 
 	if (check_empty) {
-		int retval;
-		zval *value = buffer_view_offset_get(intern, offset);
-		retval = zend_is_true(value);
-		zval_ptr_dtor(&value);
-		return retval;
+		zval value;
+		buffer_view_offset_get(intern, offset, &value);
+		return zend_is_true(&value);
 	}
 
 	return 1;
 }
 
-static void array_buffer_view_unset_dimension(zval *object, zval *zv_offset TSRMLS_DC)
+static void array_buffer_view_unset_dimension(zval *object, zval *zv_offset)
 {
-	buffer_view_object *intern = zend_object_store_get_object(object TSRMLS_CC);
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(object);
 
 	if (intern->std.ce->parent) {
-		zend_get_std_object_handlers()->unset_dimension(object, zv_offset TSRMLS_CC);
+		zend_get_std_object_handlers()->unset_dimension(object, zv_offset);
 		return;
 	}
 	
-	zend_throw_exception(NULL, "Cannot unset offsets in a typed array", 0 TSRMLS_CC);
+	zend_throw_exception(NULL, "Cannot unset offsets in a typed array", 0);
 }
 
-static int array_buffer_view_compare_objects(zval *obj1, zval *obj2 TSRMLS_DC)
+static int array_buffer_view_compare_objects(zval *obj1, zval *obj2)
 {
-	buffer_view_object *intern1 = zend_object_store_get_object(obj1 TSRMLS_CC);	
-	buffer_view_object *intern2 = zend_object_store_get_object(obj2 TSRMLS_CC);	
+	buffer_view_object *intern1 = Z_BUFFER_VIEW_OBJ_P(obj1);
+	buffer_view_object *intern2 = Z_BUFFER_VIEW_OBJ_P(obj2);
+	size_t type_size;
 
-	if (memcmp(intern1, intern2, sizeof(buffer_view_object)) == 0) {
+	if (intern1->type != intern2->type) {
+		return 1; /* not orderable */
+	}
+	if (intern1->length != intern2->length) {
+		return 1; /* not orderable */
+	}
+
+	type_size = buffer_view_get_bytes_per_element(intern1);
+	if (memcmp((void*) &intern1->buf.as_uint8[intern1->offset * type_size],
+		(void*) &intern2->buf.as_uint8[intern2->offset * type_size],
+		type_size *intern1->length)  == 0) {
 		return 0; /* equal */
 	} else {
 		return 1; /* not orderable */
 	}
 }
 
-static HashTable *array_buffer_view_get_debug_info(zval *obj, int *is_temp TSRMLS_DC)
+static HashTable *array_buffer_view_get_debug_info(zval *obj, int *is_temp)
 {
-	buffer_view_object *intern = zend_object_store_get_object(obj TSRMLS_CC);	
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(obj);
 	HashTable *props = Z_OBJPROP_P(obj);
 	HashTable *ht;
 	int i;
 
 	ALLOC_HASHTABLE(ht);
 	ZEND_INIT_SYMTABLE_EX(ht, intern->length + zend_hash_num_elements(props), 0);
-	zend_hash_copy(ht, props, (copy_ctor_func_t) zval_add_ref, NULL, sizeof(zval *));
+	zend_hash_copy(ht, props, (copy_ctor_func_t) zval_add_ref);
 
 	*is_temp = 1;
 
 	for (i = 0; i < intern->length; ++i) {
-		zval *value = buffer_view_offset_get(intern, i);
-		zend_hash_index_update(ht, i, (void *) &value, sizeof(zval *), NULL);
+		zval value;
+		buffer_view_offset_get(intern, i, &value);
+		zend_hash_index_update(ht, i, &value);
 	}
 	
 	return ht;
 }
 
-static HashTable *array_buffer_view_get_properties(zval *obj TSRMLS_DC)
+static HashTable *array_buffer_view_get_properties(zval *obj)
 {
-	buffer_view_object *intern = zend_object_store_get_object(obj TSRMLS_CC);	
-	HashTable *ht = zend_std_get_properties(obj TSRMLS_CC);
-	zval *zv;
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(obj);
+	HashTable *ht = zend_std_get_properties(obj);
+        zend_string *key;
+	zval zv;
 
-	if (!intern->buffer_zval) {
+	if (Z_ISUNDEF(intern->buffer_zval)) {
 		return ht;
 	}
 
-	Z_ADDREF_P(intern->buffer_zval);
-	zend_hash_update(ht, "buffer", sizeof("buffer"), &intern->buffer_zval, sizeof(zval *), NULL);
+        key = zend_string_init("buffer", sizeof("buffer")-1, 0);
+        ZVAL_COPY(&zv, &intern->buffer_zval);
+	zend_hash_update(ht, key, &zv);
+        zend_string_release(key);
 
-	MAKE_STD_ZVAL(zv);
-	ZVAL_LONG(zv, intern->offset);
-	zend_hash_update(ht, "offset", sizeof("offset"), &zv, sizeof(zval *), NULL);
+	ZVAL_LONG(&zv, intern->offset);
+        key = zend_string_init("offset", sizeof("offset")-1, 0);
+	zend_hash_update(ht, key, &zv);
+        zend_string_release(key);
 
-	MAKE_STD_ZVAL(zv);
-	ZVAL_LONG(zv, intern->length);
-	zend_hash_update(ht, "length", sizeof("length"), &zv, sizeof(zval *), NULL);
-	
+	ZVAL_LONG(&zv, intern->length);
+        key = zend_string_init("length", sizeof("length")-1, 0);
+	zend_hash_update(ht, key, &zv);
+        zend_string_release(key);
+
 	return ht;
 }
 
-static void buffer_view_iterator_dtor(zend_object_iterator *intern TSRMLS_DC)
+static void buffer_view_iterator_dtor(zend_object_iterator *intern)
 {
-	buffer_view_iterator *iter = (buffer_view_iterator *) intern;
-
-	if (iter->current) {
-		zval_ptr_dtor(&iter->current);
-	}
-
-	zval_ptr_dtor((zval **) &intern->data);
-	efree(iter);
+	buffer_view_iterator *iter = (buffer_view_iterator*) intern;
+	zval_ptr_dtor(&iter->intern.data);
+	zval_ptr_dtor(&iter->current);
 }
 
-static int buffer_view_iterator_valid(zend_object_iterator *intern TSRMLS_DC)
+static int buffer_view_iterator_valid(zend_object_iterator *intern)
 {
-	buffer_view_iterator *iter = (buffer_view_iterator *) intern;
+	buffer_view_iterator *iter = (buffer_view_iterator*) intern;
 
 	return iter->offset < iter->view->length ? SUCCESS : FAILURE;
 }
 
-static void buffer_view_iterator_get_current_data(zend_object_iterator *intern, zval ***data TSRMLS_DC)
+static zval *buffer_view_iterator_get_current_data(zend_object_iterator *intern)
 {
 	buffer_view_iterator *iter = (buffer_view_iterator *) intern;
-
-	if (iter->current) {
-		zval_ptr_dtor(&iter->current);
-	}
-
-	if (iter->offset < iter->view->length) {
-		iter->current = buffer_view_offset_get(iter->view, iter->offset);
-		*data = &iter->current;
-	} else {
-		*data = NULL;
-	}
+	return &iter->current;
 }
 
-#if ZEND_MODULE_API_NO >= 20121212
-static void buffer_view_iterator_get_current_key(zend_object_iterator *intern, zval *key TSRMLS_DC)
+static void buffer_view_iterator_get_current_key(zend_object_iterator *intern, zval *key)
 {
 	buffer_view_iterator *iter = (buffer_view_iterator *) intern;
 	ZVAL_LONG(key, iter->offset);
 }
-#else
-static int buffer_view_iterator_get_current_key(zend_object_iterator *intern, char **str_key, uint *str_key_len, ulong *int_key TSRMLS_DC)
-{
-	buffer_view_iterator *iter = (buffer_view_iterator *) intern;
 
-	*int_key = (ulong) iter->offset;
-	return HASH_KEY_IS_LONG;
-}
-#endif
-
-static void buffer_view_iterator_move_forward(zend_object_iterator *intern TSRMLS_DC)
+static void buffer_view_iterator_move_forward(zend_object_iterator *intern)
 {
-	buffer_view_iterator *iter = (buffer_view_iterator *) intern;
+	buffer_view_iterator *iter = (buffer_view_iterator*) intern;
 
 	iter->offset++;
+	buffer_view_offset_get(iter->view, iter->offset, &iter->current);
 }
 
-static void buffer_view_iterator_rewind(zend_object_iterator *intern TSRMLS_DC)
+static void buffer_view_iterator_rewind(zend_object_iterator *intern)
 {
-	buffer_view_iterator *iter = (buffer_view_iterator *) intern;
+	buffer_view_iterator *iter = (buffer_view_iterator*) intern;
 
 	iter->offset = 0;
-	iter->current = NULL;
+	buffer_view_offset_get(iter->view, iter->offset, &iter->current);
 }
 
-static zend_object_iterator_funcs buffer_view_iterator_funcs = {
+const zend_object_iterator_funcs buffer_view_iterator_funcs = {
 	buffer_view_iterator_dtor,
 	buffer_view_iterator_valid,
 	buffer_view_iterator_get_current_data,
@@ -712,26 +604,27 @@ static zend_object_iterator_funcs buffer_view_iterator_funcs = {
 	buffer_view_iterator_rewind
 };
 
-zend_object_iterator *buffer_view_get_iterator(zend_class_entry *ce, zval *object, int by_ref TSRMLS_DC)
+zend_object_iterator *buffer_view_get_iterator(zend_class_entry *ce, zval *object, int by_ref)
 {
 	buffer_view_iterator *iter;
 
 	if (by_ref) {
-		zend_throw_exception(NULL, "Cannot iterate buffer view by reference", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Cannot iterate buffer view by reference", 0);
 		return NULL;
 	}
 
-	iter = emalloc(sizeof(buffer_view_iterator));
-	iter->intern.funcs = &buffer_view_iterator_funcs;
+	iter = ecalloc(1, sizeof(buffer_view_iterator));
+	zend_iterator_init(&iter->intern);
 
-	iter->intern.data = object;
 	Z_ADDREF_P(object);
+        ZVAL_OBJ(&iter->intern.data, Z_OBJ_P(object));
 
-	iter->view = zend_object_store_get_object(object TSRMLS_CC);
+	iter->intern.funcs = &buffer_view_iterator_funcs;
+	iter->view = Z_BUFFER_VIEW_OBJ_P(object);
 	iter->offset = 0;
-	iter->current = NULL;
+	buffer_view_offset_get(iter->view, iter->offset, &iter->current);
 
-	return (zend_object_iterator *) iter;
+	return (zend_object_iterator*) iter;
 }
 
 PHP_FUNCTION(array_buffer_view_ctor)
@@ -740,33 +633,29 @@ PHP_FUNCTION(array_buffer_view_ctor)
 	long offset = 0, length = 0;
 	buffer_view_object *view_intern;
 	buffer_object *buffer_intern;
-	zend_error_handling error_handling;
 
-	zend_replace_error_handling(EH_THROW, NULL, &error_handling TSRMLS_CC);
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "O|ll", &buffer_zval, array_buffer_ce, &offset, &length) == FAILURE) {
-		zend_restore_error_handling(&error_handling TSRMLS_CC);
+	if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "O|ll", &buffer_zval, array_buffer_ce, &offset, &length) == FAILURE) {
 		return;
 	}
 
-	view_intern = zend_object_store_get_object(getThis() TSRMLS_CC);
-	buffer_intern = zend_object_store_get_object(buffer_zval TSRMLS_CC);
+	view_intern   = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_intern = Z_BUFFER_OBJ_P(buffer_zval);
 
 	if (offset < 0) {
-		zend_throw_exception(NULL, "Offset must be non-negative", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Offset must be non-negative", 0);
 		return;
 	}
 	if (offset >= buffer_intern->length) {
-		zend_throw_exception(NULL, "Offset has to be smaller than the buffer length", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Offset has to be smaller than the buffer length", 0);
 		return;
 	}
 	if (length < 0) {
-		zend_throw_exception(NULL, "Length must be positive or zero", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Length must be positive or zero", 0);
 		return;
 	}
 
 	view_intern->offset = offset;
-	view_intern->buffer_zval = buffer_zval;
-	Z_ADDREF_P(buffer_zval);
+	ZVAL_COPY(&view_intern->buffer_zval, buffer_zval);
 
 	{
 		size_t bytes_per_element = buffer_view_get_bytes_per_element(view_intern);
@@ -775,7 +664,7 @@ PHP_FUNCTION(array_buffer_view_ctor)
 		if (length == 0) {
 			view_intern->length = max_length;
 		} else if (length > max_length) {
-			zend_throw_exception(NULL, "Length is larger than the buffer", 0 TSRMLS_CC);
+			zend_throw_exception(NULL, "Length is larger than the buffer", 0);
 			return;
 		} else {
 			view_intern->length = length;
@@ -790,39 +679,51 @@ PHP_FUNCTION(array_buffer_view_wakeup)
 {
 	buffer_view_object *intern;
 	HashTable *props;
-	zval **buffer_zv, **offset_zv, **length_zv;
+	zval *buffer_zv, *offset_zv, *length_zv;
+        zend_string *key;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 
-	if (intern->buffer_zval) {
+	if (!Z_ISUNDEF(intern->buffer_zval)) {
 		zend_throw_exception(
-			NULL, "Cannot call __wakeup() on an already constructed object", 0 TSRMLS_CC
+			NULL, "Cannot call __wakeup() on an already constructed object", 0
 		);
 		return;
 	}
 
-	props = zend_std_get_properties(getThis() TSRMLS_CC);
+	props = zend_std_get_properties(getThis());
 
-	if (zend_hash_find(props, "buffer", sizeof("buffer"), (void **) &buffer_zv) == SUCCESS
-	 && zend_hash_find(props, "offset", sizeof("offset"), (void **) &offset_zv) == SUCCESS
-	 && zend_hash_find(props, "length", sizeof("length"), (void **) &length_zv) == SUCCESS
-	 && Z_TYPE_PP(buffer_zv) == IS_OBJECT
-	 && Z_TYPE_PP(offset_zv) == IS_LONG && Z_LVAL_PP(offset_zv) >= 0
-	 && Z_TYPE_PP(length_zv) == IS_LONG && Z_LVAL_PP(length_zv) > 0
-	 && instanceof_function(Z_OBJCE_PP(buffer_zv), array_buffer_ce TSRMLS_CC)
+        key = zend_string_init("buffer", sizeof("buffer")-1, 0);
+	buffer_zv = zend_hash_find(props, key);
+        zend_string_release(key);
+
+        key = zend_string_init("offset", sizeof("offset")-1, 0);
+	offset_zv = zend_hash_find(props, key);
+        zend_string_release(key);
+
+        key = zend_string_init("length", sizeof("length")-1, 0);
+	length_zv = zend_hash_find(props, key);
+        zend_string_release(key);
+
+	if(buffer_zv != NULL
+		 && offset_zv != NULL
+		 && length_zv != NULL
+		 && Z_TYPE_P(buffer_zv) == IS_OBJECT
+		 && Z_TYPE_P(offset_zv) == IS_LONG && Z_LVAL_P(offset_zv) >= 0
+		 && Z_TYPE_P(length_zv) == IS_LONG && Z_LVAL_P(length_zv) > 0
+		 && instanceof_function(Z_OBJCE_P(buffer_zv), array_buffer_ce)
 	) {
-		buffer_object *buffer_intern = zend_object_store_get_object(*buffer_zv TSRMLS_CC);
-		size_t offset = Z_LVAL_PP(offset_zv), length = Z_LVAL_PP(length_zv);
+		buffer_object *buffer_intern = Z_BUFFER_OBJ_P(buffer_zv);
+		size_t offset = Z_LVAL_P(offset_zv), length = Z_LVAL_P(length_zv);
 		size_t bytes_per_element = buffer_view_get_bytes_per_element(intern);
 		size_t max_length = (buffer_intern->length - offset) / bytes_per_element;
 
 		if (offset < buffer_intern->length && length <= max_length) {
-			Z_ADDREF_PP(buffer_zv);
-			intern->buffer_zval = *buffer_zv;
+			ZVAL_COPY(&intern->buffer_zval, buffer_zv);
 
 			intern->offset = offset;
 			intern->length = length;
@@ -835,7 +736,7 @@ PHP_FUNCTION(array_buffer_view_wakeup)
 	}
 
 	zend_throw_exception(
-		NULL, "Invalid serialization data", 0 TSRMLS_CC
+		NULL, "Invalid serialization data", 0
 	);
 }
 
@@ -843,21 +744,21 @@ PHP_FUNCTION(array_buffer_view_offset_get)
 {
 	buffer_view_object *intern;
 	long offset;
-	zval *retval;
+	zval retval;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &offset) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &offset) == FAILURE) {
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 
 	if (offset < 0 || offset >= intern->length) {
-		zend_throw_exception(NULL, "Offset is outside the buffer range", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Offset is outside the buffer range", 0);
 		return;
 	}
 
-	retval = buffer_view_offset_get(intern, offset);
-	RETURN_ZVAL(retval, 1, 1);
+	buffer_view_offset_get(intern, offset, &retval);
+	RETURN_ZVAL(&retval, 1, 0);
 }
 
 PHP_FUNCTION(array_buffer_view_offset_set)
@@ -866,14 +767,14 @@ PHP_FUNCTION(array_buffer_view_offset_set)
 	long offset;
 	zval *value;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz", &offset, &value) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "lz", &offset, &value) == FAILURE) {
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 
 	if (offset < 0 || offset >= intern->length) {
-		zend_throw_exception(NULL, "Offset is outside the buffer range", 0 TSRMLS_CC);
+		zend_throw_exception(NULL, "Offset is outside the buffer range", 0);
 		return;
 	}
 
@@ -885,11 +786,11 @@ PHP_FUNCTION(array_buffer_view_offset_exists)
 	buffer_view_object *intern;
 	long offset;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &offset) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &offset) == FAILURE) {
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 
 	RETURN_BOOL(offset < intern->length);
 }
@@ -898,13 +799,13 @@ PHP_FUNCTION(array_buffer_view_offset_unset)
 {
 	long offset;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &offset) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &offset) == FAILURE) {
 		return;
 	}
 
 	/* I don't think that the unset() operations makes sense on typed arrays. If you want
 	 * to zero out an offset just assign 0 to it. */
-	zend_throw_exception(NULL, "Cannot unset offsets in a typed array", 0 TSRMLS_CC);
+	zend_throw_exception(NULL, "Cannot unset offsets in a typed array", 0);
 }
 
 PHP_FUNCTION(array_buffer_view_rewind)
@@ -915,7 +816,7 @@ PHP_FUNCTION(array_buffer_view_rewind)
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	intern->current_offset = 0;
 }
 
@@ -927,7 +828,7 @@ PHP_FUNCTION(array_buffer_view_next)
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	intern->current_offset++;
 }
 
@@ -939,7 +840,7 @@ PHP_FUNCTION(array_buffer_view_valid)
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	RETURN_BOOL(intern->current_offset < intern->length);
 }
 
@@ -951,22 +852,20 @@ PHP_FUNCTION(array_buffer_view_key)
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	RETURN_LONG((long) intern->current_offset);
 }
 
 PHP_FUNCTION(array_buffer_view_current)
 {
 	buffer_view_object *intern;
-	zval *value;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	intern = zend_object_store_get_object(getThis() TSRMLS_CC);
-	value = buffer_view_offset_get(intern, intern->current_offset);
-	RETURN_ZVAL(value, 1, 1);
+	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_offset_get(intern, intern->current_offset, return_value);
 }
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_ctor, 0, 0, 1)
@@ -981,8 +880,8 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_unserialize, 0, 0, 1)
 ZEND_END_ARG_INFO()
 
 const zend_function_entry array_buffer_functions[] = {
-	PHP_ME(ArrayBuffer, __construct, arginfo_buffer_ctor, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
-	PHP_ME(ArrayBuffer, serialize, arginfo_buffer_void, ZEND_ACC_PUBLIC)
+	PHP_ME(ArrayBuffer, __construct, arginfo_buffer_ctor,        ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+	PHP_ME(ArrayBuffer, serialize,   arginfo_buffer_void,        ZEND_ACC_PUBLIC)
 	PHP_ME(ArrayBuffer, unserialize, arginfo_buffer_unserialize, ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
@@ -1004,41 +903,46 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_view_void, 0, 0, 0)
 ZEND_END_ARG_INFO()
 
 const zend_function_entry array_buffer_view_functions[] = {
-	PHP_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_buffer_view_ctor, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
-	PHP_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(__construct, array_buffer_view_ctor,           arginfo_buffer_view_ctor, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
+	PHP_ME_MAPPING(__wakeup,    array_buffer_view_wakeup,         arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
 
 	/* ArrayAccess */
-	PHP_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_buffer_view_offset, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_buffer_view_offset_set, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_buffer_view_offset, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_buffer_view_offset, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(offsetGet,    array_buffer_view_offset_get,    arginfo_buffer_view_offset,     ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(offsetSet,    array_buffer_view_offset_set,    arginfo_buffer_view_offset_set, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_buffer_view_offset,     ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(offsetUnset,  array_buffer_view_offset_unset,  arginfo_buffer_view_offset,     ZEND_ACC_PUBLIC)
 
 	/* Iterator */
-	PHP_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(next, array_buffer_view_next, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(valid, array_buffer_view_valid, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(key, array_buffer_view_key, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(current, array_buffer_view_current, arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(rewind,       array_buffer_view_rewind,        arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(next,         array_buffer_view_next,          arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(valid,        array_buffer_view_valid,         arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(key,          array_buffer_view_key,           arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
+	PHP_ME_MAPPING(current,      array_buffer_view_current,       arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
 
 	PHP_FE_END
 };
 
-PHP_MINIT_FUNCTION(buffer)
+static PHP_MINIT_FUNCTION(buffer)
 {
 	zend_class_entry tmp_ce;
 
 	INIT_CLASS_ENTRY(tmp_ce, "ArrayBuffer", array_buffer_functions);
-	array_buffer_ce = zend_register_internal_class(&tmp_ce TSRMLS_CC);
+	array_buffer_ce = zend_register_internal_class(&tmp_ce);
 	array_buffer_ce->create_object = array_buffer_create_object;
-	zend_class_implements(array_buffer_ce TSRMLS_CC, 1, zend_ce_serializable);
+	memcpy(&array_buffer_handlers, zend_get_std_object_handlers(), sizeof(array_buffer_handlers));
+	array_buffer_handlers.offset = XtOffsetOf(buffer_object, std);
+        array_buffer_handlers.dtor_obj  = zend_objects_destroy_object;
+	array_buffer_handlers.free_obj  = array_buffer_free;
+	array_buffer_handlers.clone_obj = array_buffer_clone;
 
-#define DEFINE_ARRAY_BUFFER_VIEW_CLASS(class_name, type)                     \
+	zend_class_implements(array_buffer_ce, 1, zend_ce_serializable);
+
+#define DEFINE_ARRAY_BUFFER_VIEW_CLASS(class_name, type)                         \
 	INIT_CLASS_ENTRY(tmp_ce, #class_name, array_buffer_view_functions);      \
-	type##_array_ce = zend_register_internal_class(&tmp_ce TSRMLS_CC);       \
+	type##_array_ce = zend_register_internal_class(&tmp_ce);                 \
 	type##_array_ce->create_object = array_buffer_view_create_object;        \
 	type##_array_ce->get_iterator = buffer_view_get_iterator;                \
-	type##_array_ce->iterator_funcs.funcs = &buffer_view_iterator_funcs;     \
-	zend_class_implements(type##_array_ce TSRMLS_CC, 2,                      \
+	zend_class_implements(type##_array_ce, 2,                                \
 		zend_ce_arrayaccess, zend_ce_iterator);
 
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(Int8Array,   int8);
@@ -1052,18 +956,52 @@ PHP_MINIT_FUNCTION(buffer)
 
 #undef DEFINE_ARRAY_BUFFER_VIEW_CLASS
 
-	memcpy(&array_buffer_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-	array_buffer_handlers.clone_obj = array_buffer_clone;
-
 	memcpy(&array_buffer_view_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+	array_buffer_view_handlers.offset = XtOffsetOf(buffer_view_object, std);
+        array_buffer_view_handlers.dtor_obj        = zend_objects_destroy_object;
 	array_buffer_view_handlers.clone_obj       = array_buffer_view_clone;
 	array_buffer_view_handlers.read_dimension  = array_buffer_view_read_dimension;
 	array_buffer_view_handlers.write_dimension = array_buffer_view_write_dimension;
 	array_buffer_view_handlers.has_dimension   = array_buffer_view_has_dimension;
 	array_buffer_view_handlers.unset_dimension = array_buffer_view_unset_dimension;
 	array_buffer_view_handlers.compare_objects = array_buffer_view_compare_objects;
-	array_buffer_view_handlers.get_debug_info = array_buffer_view_get_debug_info;
+	array_buffer_view_handlers.get_debug_info  = array_buffer_view_get_debug_info;
+	array_buffer_view_handlers.free_obj        = array_buffer_view_free;
 	array_buffer_view_handlers.get_properties  = array_buffer_view_get_properties;
 
 	return SUCCESS;
 }
+
+static PHP_MSHUTDOWN_FUNCTION(buffer)
+{
+	return SUCCESS;
+}
+
+PHP_RINIT_FUNCTION(buffer) {
+#if defined(COMPILE_DL_BUFFER) && defined(ZTS)
+    ZEND_TSRMLS_CACHE_UPDATE();
+#endif
+    return SUCCESS;
+}
+
+PHP_MINFO_FUNCTION(buffer) {
+	php_info_print_table_start();
+	php_info_print_table_header(2, "array buffer support", "enabled");
+	php_info_print_table_row(2, "buffer module version", BUFFER_VERSION);
+	php_info_print_table_row(2, "author", "nikic");
+	php_info_print_table_end();
+	DISPLAY_INI_ENTRIES();
+}
+
+zend_module_entry buffer_module_entry = {
+	STANDARD_MODULE_HEADER,
+	"buffer",
+	NULL,
+	PHP_MINIT(buffer),
+	PHP_MSHUTDOWN(buffer),
+	PHP_RINIT(buffer),
+	NULL,
+	PHP_MINFO(buffer),
+	BUFFER_VERSION,
+	STANDARD_MODULE_PROPERTIES
+};
