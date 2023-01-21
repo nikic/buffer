@@ -59,6 +59,14 @@ typedef zval zval_or_zend_object;
 # define THIS_ZVAL_OR_OBJ getThis()
 #endif
 
+#if PHP_VERSION_ID < 70300
+static zend_always_inline void *zend_object_alloc(size_t obj_size, zend_class_entry *ce) {
+	void *obj = emalloc(obj_size + zend_object_properties_size(ce));
+	memset(obj, 0, obj_size - sizeof(zend_object));
+	return obj;
+}
+#endif
+
 #ifdef COMPILE_DL_BUFFER
 ZEND_GET_MODULE(buffer)
 #endif
@@ -644,7 +652,7 @@ zend_object_iterator *buffer_view_get_iterator(zend_class_entry *ce, zval *objec
 	zend_iterator_init(&iter->intern);
 
 	Z_ADDREF_P(object);
-        ZVAL_OBJ(&iter->intern.data, Z_OBJ_P(object));
+	ZVAL_OBJ(&iter->intern.data, Z_OBJ_P(object));
 
 	iter->intern.funcs = &buffer_view_iterator_funcs;
 	iter->view = Z_BUFFER_VIEW_OBJ_P(object);

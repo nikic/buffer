@@ -38,7 +38,7 @@ echo "7\n";
 $uint16s = new UInt16Array($buffer, 32, 1024);
 echo "8\n";
 ?>
---EXPECT--
+--EXPECTF--
 1
 2
 3
