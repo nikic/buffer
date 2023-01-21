@@ -15,7 +15,6 @@ for($i=0; $i<20; $i++){
 }
 print_r($v1);
 $serstr = serialize($v1);
-echo strlen($serstr)."\n";
 
 $v2 = unserialize($serstr);
 foreach($v2 as $v){
@@ -52,7 +51,6 @@ DoubleArray Object
     [18] => 9
     [19] => 9.5
 )
-271
 0
 0.5
 1

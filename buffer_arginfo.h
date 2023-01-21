@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: f99406d9981d1f758a96c5421e6cc06a60ec315f */
+ * Stub hash: 2760e7242fd975b0cb18eeaf3bdc597732cc19ba */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, length, IS_LONG, 0)
@@ -10,6 +10,13 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_ArrayBuffer_unserialize, 0, 1, IS_VOID, 0)
 	ZEND_ARG_TYPE_INFO(0, data, IS_STRING, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_ArrayBuffer___serialize, 0, 0, IS_ARRAY, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_ArrayBuffer___unserialize, 0, 1, IS_VOID, 0)
+	ZEND_ARG_TYPE_INFO(0, data, IS_ARRAY, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Int8Array___construct, 0, 0, 1)
@@ -208,6 +215,8 @@ ZEND_END_ARG_INFO()
 ZEND_METHOD(ArrayBuffer, __construct);
 ZEND_METHOD(ArrayBuffer, serialize);
 ZEND_METHOD(ArrayBuffer, unserialize);
+ZEND_METHOD(ArrayBuffer, __serialize);
+ZEND_METHOD(ArrayBuffer, __unserialize);
 ZEND_FUNCTION(array_buffer_view_ctor);
 ZEND_FUNCTION(array_buffer_view_wakeup);
 ZEND_FUNCTION(array_buffer_view_offset_get);
@@ -225,6 +234,8 @@ static const zend_function_entry class_ArrayBuffer_methods[] = {
 	ZEND_ME(ArrayBuffer, __construct, arginfo_class_ArrayBuffer___construct, ZEND_ACC_PUBLIC)
 	ZEND_ME(ArrayBuffer, serialize, arginfo_class_ArrayBuffer_serialize, ZEND_ACC_PUBLIC)
 	ZEND_ME(ArrayBuffer, unserialize, arginfo_class_ArrayBuffer_unserialize, ZEND_ACC_PUBLIC)
+	ZEND_ME(ArrayBuffer, __serialize, arginfo_class_ArrayBuffer___serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME(ArrayBuffer, __unserialize, arginfo_class_ArrayBuffer___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 

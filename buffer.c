@@ -67,6 +67,10 @@ static zend_always_inline void *zend_object_alloc(size_t obj_size, zend_class_en
 }
 #endif
 
+#ifndef ZEND_ACC_NO_DYNAMIC_PROPERTIES
+# define ZEND_ACC_NO_DYNAMIC_PROPERTIES 0
+#endif
+
 #ifdef COMPILE_DL_BUFFER
 ZEND_GET_MODULE(buffer)
 #endif
@@ -169,22 +173,13 @@ PHP_METHOD(ArrayBuffer, serialize)
 	PHP_VAR_SERIALIZE_INIT(var_hash);
 
 	/* Serialize buffer as string */
-        zend_string *zstr = zend_string_init((char*) intern->buffer, intern->length, 0);
+	zend_string *zstr = zend_string_init((char*) intern->buffer, intern->length, 0);
 	ZVAL_STR(&zv, zstr);
 	php_var_serialize(&buf, &zv, &var_hash);
 	zend_string_release(zstr);
 
-	/* Serialize properties as array */
-	ZVAL_ARR(&zv, zend_std_get_properties(THIS_ZVAL_OR_OBJ));
-	php_var_serialize(&buf, &zv, &var_hash);
-
 	PHP_VAR_SERIALIZE_DESTROY(var_hash);
-
-        if (buf.s) {
-                RETURN_NEW_STR(buf.s);
-        }
-
-        RETURN_NULL();
+	RETURN_NEW_STR(buf.s);
 }
 
 PHP_METHOD(ArrayBuffer, unserialize)
@@ -194,7 +189,7 @@ PHP_METHOD(ArrayBuffer, unserialize)
 	size_t str_len;
 	php_unserialize_data_t var_hash;
 	const unsigned char *p, *max;
-	zval *zbuf, *ztable;
+	zval *zbuf;
 	zend_string *zstr;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &str, &str_len) == FAILURE) {
@@ -219,38 +214,64 @@ PHP_METHOD(ArrayBuffer, unserialize)
 	if (!php_var_unserialize(zbuf, &p, max, &var_hash)) {
 		zend_throw_exception(NULL, "Could not unserialize buffer: no data", 0);
 		goto exit;
-        }
-        if (Z_TYPE_P(zbuf) != IS_STRING) {
+	}
+	if (Z_TYPE_P(zbuf) != IS_STRING) {
 		zend_throw_exception(NULL, "Could not unserialize buffer: not a string", 0);
 		goto exit;
-       }
+	}
 
-        zstr = zval_get_string(zbuf);
+	zstr = Z_STR_P(zbuf);
 	intern->length = ZSTR_LEN(zstr);
-        if(intern->length == 0) {
+	if (intern->length == 0) {
 		zend_throw_exception(NULL, "Could not unserialize buffer: empty string", 0);
 		goto exit;
 	}
 	intern->buffer = emalloc(intern->length);
-        memcpy(intern->buffer, &ZSTR_VAL(zstr), intern->length);
-        zend_string_release(zstr);
-
-	ztable = var_tmp_var(&var_hash);
-	if (!php_var_unserialize(ztable, &p, max, &var_hash)
-			|| Z_TYPE_P(ztable) != IS_ARRAY) {
-		zend_throw_exception(NULL, "Could not unserialize properties", 0);
-		goto exit;
-	}
-
-	if (zend_hash_num_elements(Z_ARRVAL_P(ztable)) != 0) {
-		zend_hash_copy(
-			zend_std_get_properties(THIS_ZVAL_OR_OBJ), Z_ARRVAL_P(ztable),
-			(copy_ctor_func_t) zval_add_ref
-		);
-	}
+	memcpy(intern->buffer, ZSTR_VAL(zstr), intern->length);
+	zend_string_release(zstr);
 
 exit:
 	PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
+}
+
+PHP_METHOD(ArrayBuffer, __serialize)
+{
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
+	array_init(return_value);
+	add_assoc_stringl(return_value, "data", intern->buffer, intern->length);
+}
+
+PHP_METHOD(ArrayBuffer, __unserialize)
+{
+	HashTable *ht;
+	if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "h", &ht) == FAILURE) {
+		return;
+	}
+
+	zval *data = zend_hash_str_find(ht, "data", strlen("data"));
+	if (!data) {
+		zend_throw_exception(NULL, "Could not unserialize buffer: Missing \"data\" entry", 0);
+		return;
+	}
+
+	if (Z_TYPE_P(data) != IS_STRING) {
+		zend_throw_exception(NULL, "Could not unserialize buffer: not a string", 0);
+		return;
+	}
+
+	if (Z_STRLEN_P(data) == 0) {
+		zend_throw_exception(NULL, "Could not unserialize buffer: empty string", 0);
+		return;
+	}
+
+	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
+	intern->length = Z_STRLEN_P(data);
+	intern->buffer = emalloc(intern->length);
+	memcpy(intern->buffer, Z_STRVAL_P(data), intern->length);
 }
 
 static void array_buffer_view_free(zend_object *obj)
@@ -533,14 +554,20 @@ static int array_buffer_view_compare_objects(zval *obj1, zval *obj2)
 	}
 }
 
+/* TODO: We really shouldn't be doing this, but then we can't use __wakeup */
 static HashTable *array_buffer_view_get_properties(zval_or_zend_object *obj)
 {
 	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(obj);
 	HashTable *ht = zend_std_get_properties(obj);
-        zend_string *key;
+	zend_string *key;
 	zval zv;
 
 	if (Z_ISUNDEF(intern->buffer_zval)) {
+		return ht;
+	}
+
+	if (zend_hash_str_exists(ht, "buffer", sizeof("buffer")-1)) {
+		/* Don't reinitialized properties */
 		return ht;
 	}
 
@@ -909,6 +936,7 @@ static PHP_MINIT_FUNCTION(buffer)
 
 	INIT_CLASS_ENTRY(tmp_ce, "ArrayBuffer", class_ArrayBuffer_methods);
 	array_buffer_ce = zend_register_internal_class(&tmp_ce);
+	array_buffer_ce->ce_flags |= ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	array_buffer_ce->create_object = array_buffer_create_object;
 	memcpy(&array_buffer_handlers, zend_get_std_object_handlers(), sizeof(array_buffer_handlers));
 	array_buffer_handlers.offset = XtOffsetOf(buffer_object, std);

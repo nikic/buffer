@@ -18,7 +18,6 @@ $buffer = new ArrayBuffer(8 * 20);
 }
 gc_collect_cycles();
 $serstr = serialize($buffer);
-echo strlen($serstr)."\n";
 
 $new_buffer = unserialize($serstr);
 $v2 = new DoubleArray($new_buffer, 0, 20);
@@ -56,7 +55,6 @@ DoubleArray Object
     [18] => 9
     [19] => 9.5
 )
-200
 0
 0.5
 1

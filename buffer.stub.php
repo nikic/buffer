@@ -10,6 +10,10 @@ class ArrayBuffer implements Serializable {
     public function serialize(): string {}
 
     public function unserialize(string $data): void {}
+
+    public function __serialize(): array {}
+
+    public function __unserialize(array $data): void {}
 }
 
 class Int8Array implements ArrayAccess, Iterator {
