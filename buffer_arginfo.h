@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 2760e7242fd975b0cb18eeaf3bdc597732cc19ba */
+ * Stub hash: e6d2b81c3c8a89d07267d850f9eeba869a67655a */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, length, IS_LONG, 0)
@@ -21,6 +21,8 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Int8Array___construct, 0, 0, 1)
 	ZEND_ARG_OBJ_INFO(0, buffer, ArrayBuffer, 0)
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, offset, IS_LONG, 0, "0")
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, length, IS_LONG, 0, "0")
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Int8Array___wakeup, 0, 0, IS_VOID, 0)
@@ -55,6 +57,10 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Int8Array_current arginfo_class_Int8Array_key
 
+#define arginfo_class_Int8Array___serialize arginfo_class_ArrayBuffer___serialize
+
+#define arginfo_class_Int8Array___unserialize arginfo_class_ArrayBuffer___unserialize
+
 #define arginfo_class_UInt8Array___construct arginfo_class_Int8Array___construct
 
 #define arginfo_class_UInt8Array___wakeup arginfo_class_Int8Array___wakeup
@@ -76,6 +82,10 @@ ZEND_END_ARG_INFO()
 #define arginfo_class_UInt8Array_key arginfo_class_Int8Array_key
 
 #define arginfo_class_UInt8Array_current arginfo_class_Int8Array_key
+
+#define arginfo_class_UInt8Array___serialize arginfo_class_ArrayBuffer___serialize
+
+#define arginfo_class_UInt8Array___unserialize arginfo_class_ArrayBuffer___unserialize
 
 #define arginfo_class_Int16Array___construct arginfo_class_Int8Array___construct
 
@@ -99,6 +109,10 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_Int16Array_current arginfo_class_Int8Array_key
 
+#define arginfo_class_Int16Array___serialize arginfo_class_ArrayBuffer___serialize
+
+#define arginfo_class_Int16Array___unserialize arginfo_class_ArrayBuffer___unserialize
+
 #define arginfo_class_UInt16Array___construct arginfo_class_Int8Array___construct
 
 #define arginfo_class_UInt16Array___wakeup arginfo_class_Int8Array___wakeup
@@ -121,6 +135,10 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_UInt16Array_current arginfo_class_Int8Array_key
 
+#define arginfo_class_UInt16Array___serialize arginfo_class_ArrayBuffer___serialize
+
+#define arginfo_class_UInt16Array___unserialize arginfo_class_ArrayBuffer___unserialize
+
 #define arginfo_class_Int32Array___construct arginfo_class_Int8Array___construct
 
 #define arginfo_class_Int32Array___wakeup arginfo_class_Int8Array___wakeup
@@ -142,6 +160,10 @@ ZEND_END_ARG_INFO()
 #define arginfo_class_Int32Array_key arginfo_class_Int8Array_key
 
 #define arginfo_class_Int32Array_current arginfo_class_Int8Array_key
+
+#define arginfo_class_Int32Array___serialize arginfo_class_ArrayBuffer___serialize
+
+#define arginfo_class_Int32Array___unserialize arginfo_class_ArrayBuffer___unserialize
 
 #define arginfo_class_UInt32Array___construct arginfo_class_Int8Array___construct
 
@@ -166,6 +188,10 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_UInt32Array_current, 0, 0, MAY_BE_LONG|MAY_BE_DOUBLE)
 ZEND_END_ARG_INFO()
 
+#define arginfo_class_UInt32Array___serialize arginfo_class_ArrayBuffer___serialize
+
+#define arginfo_class_UInt32Array___unserialize arginfo_class_ArrayBuffer___unserialize
+
 #define arginfo_class_FloatArray___construct arginfo_class_Int8Array___construct
 
 #define arginfo_class_FloatArray___wakeup arginfo_class_Int8Array___wakeup
@@ -189,6 +215,10 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_FloatArray_current, 0, 0, IS_DOUBLE, 0)
 ZEND_END_ARG_INFO()
 
+#define arginfo_class_FloatArray___serialize arginfo_class_ArrayBuffer___serialize
+
+#define arginfo_class_FloatArray___unserialize arginfo_class_ArrayBuffer___unserialize
+
 #define arginfo_class_DoubleArray___construct arginfo_class_Int8Array___construct
 
 #define arginfo_class_DoubleArray___wakeup arginfo_class_Int8Array___wakeup
@@ -211,6 +241,10 @@ ZEND_END_ARG_INFO()
 
 #define arginfo_class_DoubleArray_current arginfo_class_FloatArray_current
 
+#define arginfo_class_DoubleArray___serialize arginfo_class_ArrayBuffer___serialize
+
+#define arginfo_class_DoubleArray___unserialize arginfo_class_ArrayBuffer___unserialize
+
 
 ZEND_METHOD(ArrayBuffer, __construct);
 ZEND_METHOD(ArrayBuffer, serialize);
@@ -228,6 +262,8 @@ ZEND_FUNCTION(array_buffer_view_next);
 ZEND_FUNCTION(array_buffer_view_valid);
 ZEND_FUNCTION(array_buffer_view_key);
 ZEND_FUNCTION(array_buffer_view_current);
+ZEND_FUNCTION(array_buffer_view_serialize);
+ZEND_FUNCTION(array_buffer_view_unserialize);
 
 
 static const zend_function_entry class_ArrayBuffer_methods[] = {
@@ -252,6 +288,8 @@ static const zend_function_entry class_Int8Array_methods[] = {
 	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_Int8Array_valid, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_Int8Array_key, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_Int8Array_current, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__serialize, array_buffer_view_serialize, arginfo_class_Int8Array___serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__unserialize, array_buffer_view_unserialize, arginfo_class_Int8Array___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -268,6 +306,8 @@ static const zend_function_entry class_UInt8Array_methods[] = {
 	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_UInt8Array_valid, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_UInt8Array_key, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_UInt8Array_current, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__serialize, array_buffer_view_serialize, arginfo_class_UInt8Array___serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__unserialize, array_buffer_view_unserialize, arginfo_class_UInt8Array___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -284,6 +324,8 @@ static const zend_function_entry class_Int16Array_methods[] = {
 	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_Int16Array_valid, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_Int16Array_key, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_Int16Array_current, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__serialize, array_buffer_view_serialize, arginfo_class_Int16Array___serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__unserialize, array_buffer_view_unserialize, arginfo_class_Int16Array___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -300,6 +342,8 @@ static const zend_function_entry class_UInt16Array_methods[] = {
 	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_UInt16Array_valid, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_UInt16Array_key, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_UInt16Array_current, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__serialize, array_buffer_view_serialize, arginfo_class_UInt16Array___serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__unserialize, array_buffer_view_unserialize, arginfo_class_UInt16Array___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -316,6 +360,8 @@ static const zend_function_entry class_Int32Array_methods[] = {
 	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_Int32Array_valid, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_Int32Array_key, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_Int32Array_current, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__serialize, array_buffer_view_serialize, arginfo_class_Int32Array___serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__unserialize, array_buffer_view_unserialize, arginfo_class_Int32Array___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -332,6 +378,8 @@ static const zend_function_entry class_UInt32Array_methods[] = {
 	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_UInt32Array_valid, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_UInt32Array_key, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_UInt32Array_current, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__serialize, array_buffer_view_serialize, arginfo_class_UInt32Array___serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__unserialize, array_buffer_view_unserialize, arginfo_class_UInt32Array___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -348,6 +396,8 @@ static const zend_function_entry class_FloatArray_methods[] = {
 	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_FloatArray_valid, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_FloatArray_key, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_FloatArray_current, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__serialize, array_buffer_view_serialize, arginfo_class_FloatArray___serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__unserialize, array_buffer_view_unserialize, arginfo_class_FloatArray___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -364,5 +414,7 @@ static const zend_function_entry class_DoubleArray_methods[] = {
 	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_DoubleArray_valid, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_DoubleArray_key, ZEND_ACC_PUBLIC)
 	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_DoubleArray_current, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__serialize, array_buffer_view_serialize, arginfo_class_DoubleArray___serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__unserialize, array_buffer_view_unserialize, arginfo_class_DoubleArray___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };

@@ -18,7 +18,7 @@ class ArrayBuffer implements Serializable {
 
 class Int8Array implements ArrayAccess, Iterator {
     /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer) {}
+    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
     /** @implementation-alias array_buffer_view_wakeup */
     public function __wakeup(): void {}
@@ -62,11 +62,17 @@ class Int8Array implements ArrayAccess, Iterator {
 
     /** @implementation-alias array_buffer_view_current */
     public function current(): int {}
+
+    /** @implementation-alias array_buffer_view_serialize */
+    public function __serialize(): array {}
+
+    /** @implementation-alias array_buffer_view_unserialize */
+    public function __unserialize(array $data): void {}
 }
 
 class UInt8Array implements ArrayAccess, Iterator {
     /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer) {}
+    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
     /** @implementation-alias array_buffer_view_wakeup */
     public function __wakeup(): void {}
@@ -110,11 +116,17 @@ class UInt8Array implements ArrayAccess, Iterator {
 
     /** @implementation-alias array_buffer_view_current */
     public function current(): int {}
+
+    /** @implementation-alias array_buffer_view_serialize */
+    public function __serialize(): array {}
+
+    /** @implementation-alias array_buffer_view_unserialize */
+    public function __unserialize(array $data): void {}
 }
 
 class Int16Array implements ArrayAccess, Iterator {
     /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer) {}
+    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
     /** @implementation-alias array_buffer_view_wakeup */
     public function __wakeup(): void {}
@@ -158,11 +170,17 @@ class Int16Array implements ArrayAccess, Iterator {
 
     /** @implementation-alias array_buffer_view_current */
     public function current(): int {}
+
+    /** @implementation-alias array_buffer_view_serialize */
+    public function __serialize(): array {}
+
+    /** @implementation-alias array_buffer_view_unserialize */
+    public function __unserialize(array $data): void {}
 }
 
 class UInt16Array implements ArrayAccess, Iterator {
     /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer) {}
+    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
     /** @implementation-alias array_buffer_view_wakeup */
     public function __wakeup(): void {}
@@ -206,11 +224,17 @@ class UInt16Array implements ArrayAccess, Iterator {
 
     /** @implementation-alias array_buffer_view_current */
     public function current(): int {}
+
+    /** @implementation-alias array_buffer_view_serialize */
+    public function __serialize(): array {}
+
+    /** @implementation-alias array_buffer_view_unserialize */
+    public function __unserialize(array $data): void {}
 }
 
 class Int32Array implements ArrayAccess, Iterator {
     /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer) {}
+    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
     /** @implementation-alias array_buffer_view_wakeup */
     public function __wakeup(): void {}
@@ -254,11 +278,17 @@ class Int32Array implements ArrayAccess, Iterator {
 
     /** @implementation-alias array_buffer_view_current */
     public function current(): int {}
+
+    /** @implementation-alias array_buffer_view_serialize */
+    public function __serialize(): array {}
+
+    /** @implementation-alias array_buffer_view_unserialize */
+    public function __unserialize(array $data): void {}
 }
 
 class UInt32Array implements ArrayAccess, Iterator {
     /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer) {}
+    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
     /** @implementation-alias array_buffer_view_wakeup */
     public function __wakeup(): void {}
@@ -302,11 +332,17 @@ class UInt32Array implements ArrayAccess, Iterator {
 
     /** @implementation-alias array_buffer_view_current */
     public function current(): int|float {}
+
+    /** @implementation-alias array_buffer_view_serialize */
+    public function __serialize(): array {}
+
+    /** @implementation-alias array_buffer_view_unserialize */
+    public function __unserialize(array $data): void {}
 }
 
 class FloatArray implements ArrayAccess, Iterator {
     /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer) {}
+    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
     /** @implementation-alias array_buffer_view_wakeup */
     public function __wakeup(): void {}
@@ -350,11 +386,17 @@ class FloatArray implements ArrayAccess, Iterator {
 
     /** @implementation-alias array_buffer_view_current */
     public function current(): float {}
+
+    /** @implementation-alias array_buffer_view_serialize */
+    public function __serialize(): array {}
+
+    /** @implementation-alias array_buffer_view_unserialize */
+    public function __unserialize(array $data): void {}
 }
 
 class DoubleArray implements ArrayAccess, Iterator {
     /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer) {}
+    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
     /** @implementation-alias array_buffer_view_wakeup */
     public function __wakeup(): void {}
@@ -398,4 +440,10 @@ class DoubleArray implements ArrayAccess, Iterator {
 
     /** @implementation-alias array_buffer_view_current */
     public function current(): float {}
+
+    /** @implementation-alias array_buffer_view_serialize */
+    public function __serialize(): array {}
+
+    /** @implementation-alias array_buffer_view_unserialize */
+    public function __unserialize(array $data): void {}
 }

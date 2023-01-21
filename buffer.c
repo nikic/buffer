@@ -688,7 +688,7 @@ zend_object_iterator *buffer_view_get_iterator(zend_class_entry *ce, zval *objec
 PHP_FUNCTION(array_buffer_view_ctor)
 {
 	zval *buffer_zval;
-	long offset = 0, length = 0;
+	zend_long offset = 0, length = 0;
 	buffer_view_object *view_intern;
 	buffer_object *buffer_intern;
 
@@ -755,17 +755,17 @@ PHP_FUNCTION(array_buffer_view_wakeup)
 
 	props = zend_std_get_properties(THIS_ZVAL_OR_OBJ);
 
-        key = zend_string_init("buffer", sizeof("buffer")-1, 0);
+	key = zend_string_init("buffer", sizeof("buffer")-1, 0);
 	buffer_zv = zend_hash_find(props, key);
-        zend_string_release(key);
+	zend_string_release(key);
 
-        key = zend_string_init("offset", sizeof("offset")-1, 0);
+	key = zend_string_init("offset", sizeof("offset")-1, 0);
 	offset_zv = zend_hash_find(props, key);
-        zend_string_release(key);
+	zend_string_release(key);
 
-        key = zend_string_init("length", sizeof("length")-1, 0);
+	key = zend_string_init("length", sizeof("length")-1, 0);
 	length_zv = zend_hash_find(props, key);
-        zend_string_release(key);
+	zend_string_release(key);
 
 	if(buffer_zv != NULL
 		 && offset_zv != NULL
@@ -924,6 +924,71 @@ PHP_FUNCTION(array_buffer_view_current)
 
 	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	buffer_view_offset_get(intern, intern->current_offset, return_value);
+}
+
+PHP_FUNCTION(array_buffer_view_serialize)
+{
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	array_init(return_value);
+
+	Z_ADDREF(intern->buffer_zval);
+	add_assoc_zval(return_value, "buffer", &intern->buffer_zval);
+	add_assoc_long(return_value, "offset", intern->offset);
+	add_assoc_long(return_value, "length", intern->length);
+}
+
+PHP_FUNCTION(array_buffer_view_unserialize)
+{
+	HashTable *ht;
+
+	if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "h", &ht) == FAILURE) {
+		return;
+	}
+
+	zval *buffer_zv = zend_hash_str_find(ht, "buffer", strlen("buffer"));
+	zval *offset_zv = zend_hash_str_find(ht, "offset", strlen("offset"));
+	zval *length_zv = zend_hash_str_find(ht, "length", strlen("length"));
+	if (!buffer_zv || !offset_zv || !length_zv) {
+		zend_throw_exception(NULL,
+			"Could not unserialize view: Missing \"buffer\", \"offset\", or \"length\" entry", 0);
+		return;
+	}
+
+	if (Z_TYPE_P(buffer_zv) != IS_OBJECT
+			|| Z_TYPE_P(offset_zv) != IS_LONG
+			|| Z_TYPE_P(length_zv) != IS_LONG
+			|| !instanceof_function(Z_OBJCE_P(buffer_zv), array_buffer_ce)) {
+		zend_throw_exception(NULL, "Could not unserialize view: Incorrect type", 0);
+		return;
+	}
+
+	if (Z_LVAL_P(offset_zv) < 0 || Z_LVAL_P(length_zv) <= 0) {
+		zend_throw_exception(NULL, "Could not unserialize view: Invalid offset/length", 0);
+		return;
+	}
+
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_object *buffer_intern = Z_BUFFER_OBJ_P(buffer_zv);
+	size_t offset = Z_LVAL_P(offset_zv), length = Z_LVAL_P(length_zv);
+	size_t bytes_per_element = buffer_view_get_bytes_per_element(intern);
+	size_t max_length = (buffer_intern->length - offset) / bytes_per_element;
+
+	if (offset >= buffer_intern->length || length > max_length) {
+		zend_throw_exception(NULL, "Could not unserialize view: Offset/length out of bounds", 0);
+		return;
+	}
+
+	ZVAL_COPY(&intern->buffer_zval, buffer_zv);
+
+	intern->offset = offset;
+	intern->length = length;
+
+	intern->buf.as_int8 = buffer_intern->buffer;
+	intern->buf.as_int8 += offset;
 }
 
 static PHP_MINIT_FUNCTION(buffer)
