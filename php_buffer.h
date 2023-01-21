@@ -82,9 +82,6 @@ static inline buffer_view_object * php_buffer_view_fetch_object(zend_object *obj
 }
 #define Z_BUFFER_VIEW_OBJ_P(zvp) php_buffer_view_fetch_object(Z_OBJ_P(zvp));
 
-static PHP_MINIT_FUNCTION(buffer);
-static PHP_MSHUTDOWN_FUNCTION(buffer);
-
 #endif
 
 

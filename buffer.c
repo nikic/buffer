@@ -41,6 +41,17 @@
 # include <stdint.h>
 #endif
 
+#if PHP_VERSION_ID >= 80000
+typedef zend_object zval_or_zend_object;
+# define BUFFER_FROM_ZVAL_OR_OBJ(z) php_buffer_fetch_object(z)
+# define BUFFER_VIEW_FROM_ZVAL_OR_OBJ(z) php_buffer_view_fetch_object(z)
+# define THIS_ZVAL_OR_OBJ Z_OBJ_P(ZEND_THIS)
+#else
+typedef zval zval_or_zend_object;
+# define BUFFER_FROM_ZVAL_OR_OBJ(z) Z_BUFFER_OBJ_P(z)
+# define BUFFER_VIEW_FROM_ZVAL_OR_OBJ(z) Z_BUFFER_VIEW_OBJ_P(z)
+# define THIS_ZVAL_OR_OBJ getThis()
+#endif
 
 #ifdef COMPILE_DL_BUFFER
 ZEND_GET_MODULE(buffer)
@@ -74,8 +85,6 @@ static void array_buffer_free(zend_object *object)
 
 zend_object *array_buffer_create_object(zend_class_entry *class_type)
 {
-	zend_object *retval;
-
 	buffer_object *intern = zend_object_alloc(sizeof(buffer_object), class_type);
 	intern->buffer = NULL;
 
@@ -86,13 +95,13 @@ zend_object *array_buffer_create_object(zend_class_entry *class_type)
 }
 
 
-static zend_object *array_buffer_clone(zval *object)
+static zend_object *array_buffer_clone(zval_or_zend_object *object)
 {
-	buffer_object *old_object = Z_BUFFER_OBJ_P(object);
-	zend_object *znew_object = array_buffer_create_object(Z_OBJCE_P(object));
+	buffer_object *old_object = BUFFER_FROM_ZVAL_OR_OBJ(object);
+	zend_object *znew_object = array_buffer_create_object(old_object->std.ce);
 	buffer_object *new_object = php_buffer_fetch_object(znew_object);
 
-	zend_objects_clone_members(znew_object, Z_OBJ_P(object));
+	zend_objects_clone_members(znew_object, &old_object->std);
 
 	new_object->buffer = old_object->buffer;
 	new_object->length = old_object->length;
@@ -152,7 +161,7 @@ PHP_METHOD(ArrayBuffer, serialize)
 	zend_string_release(zstr);
 
 	/* Serialize properties as array */
-	ZVAL_ARR(&zv, zend_std_get_properties(getThis()));
+	ZVAL_ARR(&zv, zend_std_get_properties(THIS_ZVAL_OR_OBJ));
 	php_var_serialize(&buf, &zv, &var_hash);
 
 	PHP_VAR_SERIALIZE_DESTROY(var_hash);
@@ -221,7 +230,7 @@ PHP_METHOD(ArrayBuffer, unserialize)
 
 	if (zend_hash_num_elements(Z_ARRVAL_P(ztable)) != 0) {
 		zend_hash_copy(
-			zend_std_get_properties(getThis()), Z_ARRVAL_P(ztable),
+			zend_std_get_properties(THIS_ZVAL_OR_OBJ), Z_ARRVAL_P(ztable),
 			(copy_ctor_func_t) zval_add_ref
 		);
 	}
@@ -243,8 +252,6 @@ static void array_buffer_view_free(zend_object *obj)
 
 zend_object *array_buffer_view_create_object(zend_class_entry *class_type)
 {
-	zend_object *retval;
-
 	buffer_view_object *intern = emalloc(sizeof(buffer_view_object) +
 			                                         zend_object_properties_size(class_type));
 	ZVAL_UNDEF(&intern->buffer_zval);
@@ -287,15 +294,14 @@ zend_object *array_buffer_view_create_object(zend_class_entry *class_type)
 	return &intern->std;
 }
 
-static zend_object *array_buffer_view_clone(zval *object)
+static zend_object *array_buffer_view_clone(zval_or_zend_object *object)
 {
-	buffer_view_object *old_object = Z_BUFFER_VIEW_OBJ_P(object);
+	buffer_view_object *old_object = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
 	zend_object *znew_object = array_buffer_view_create_object(
-		Z_OBJCE_P(object)
-	);
+		old_object->std.ce);
 	buffer_view_object *new_object = php_buffer_view_fetch_object(znew_object);
 
-	zend_objects_clone_members(znew_object, Z_OBJ_P(object));
+	zend_objects_clone_members(znew_object, &old_object->std);
 
 	new_object->buffer_zval = old_object->buffer_zval;
 	if (!Z_ISUNDEF(new_object->buffer_zval)) {
@@ -347,11 +353,15 @@ void buffer_view_offset_get(buffer_view_object *intern, size_t offset, zval *ret
 			ZVAL_LONG(retval, intern->buf.as_int32[offset]); break;
 		case buffer_view_uint32: {
 			uint32_t value = intern->buf.as_uint32[offset];
-			if (value <= LONG_MAX) {
+#if SIZEOF_ZEND_LONG == 8
+			ZVAL_LONG(retval, value);
+#else
+			if (value <= ZEND_LONG_MAX) {
 				ZVAL_LONG(retval, value);
 			} else {
 				ZVAL_DOUBLE(retval, value);
 			}
+#endif
 			break;
 		}
 		case buffer_view_float:
@@ -397,9 +407,10 @@ void buffer_view_offset_set(buffer_view_object *intern, zend_long offset, zval *
 	}
 }
 
-static zval *array_buffer_view_read_dimension(zval *object, zval *zv_offset, int type, zval *retval)
+static zval *array_buffer_view_read_dimension(
+		zval_or_zend_object *object, zval *zv_offset, int type, zval *retval)
 {
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(object);
+	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
 	zend_long offset;
 
 	if (intern->std.ce->parent) {
@@ -421,9 +432,10 @@ static zval *array_buffer_view_read_dimension(zval *object, zval *zv_offset, int
         return retval;
 }
 
-static void array_buffer_view_write_dimension(zval *object, zval *zv_offset, zval *value)
+static void array_buffer_view_write_dimension(
+		zval_or_zend_object *object, zval *zv_offset, zval *value)
 {
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(object);
+	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
 	zend_long offset;
 	
 	if (intern->std.ce->parent) {
@@ -445,9 +457,10 @@ static void array_buffer_view_write_dimension(zval *object, zval *zv_offset, zva
 	buffer_view_offset_set(intern, offset, value);
 }
 
-static int array_buffer_view_has_dimension(zval *object, zval *zv_offset, int check_empty)
+static int array_buffer_view_has_dimension(
+		zval_or_zend_object *object, zval *zv_offset, int check_empty)
 {
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(object);
+	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
 	zend_long offset = zval_get_long(zv_offset);
  
 	if (intern->std.ce->parent) {
@@ -467,9 +480,9 @@ static int array_buffer_view_has_dimension(zval *object, zval *zv_offset, int ch
 	return 1;
 }
 
-static void array_buffer_view_unset_dimension(zval *object, zval *zv_offset)
+static void array_buffer_view_unset_dimension(zval_or_zend_object *object, zval *zv_offset)
 {
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(object);
+	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
 
 	if (intern->std.ce->parent) {
 		zend_get_std_object_handlers()->unset_dimension(object, zv_offset);
@@ -481,6 +494,10 @@ static void array_buffer_view_unset_dimension(zval *object, zval *zv_offset)
 
 static int array_buffer_view_compare_objects(zval *obj1, zval *obj2)
 {
+#if PHP_VERSION_ID >= 80000
+	ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
+#endif
+
 	buffer_view_object *intern1 = Z_BUFFER_VIEW_OBJ_P(obj1);
 	buffer_view_object *intern2 = Z_BUFFER_VIEW_OBJ_P(obj2);
 	size_t type_size;
@@ -502,10 +519,39 @@ static int array_buffer_view_compare_objects(zval *obj1, zval *obj2)
 	}
 }
 
-static HashTable *array_buffer_view_get_debug_info(zval *obj, int *is_temp)
+static HashTable *array_buffer_view_get_properties(zval_or_zend_object *obj)
 {
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(obj);
-	HashTable *props = Z_OBJPROP_P(obj);
+	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(obj);
+	HashTable *ht = zend_std_get_properties(obj);
+        zend_string *key;
+	zval zv;
+
+	if (Z_ISUNDEF(intern->buffer_zval)) {
+		return ht;
+	}
+
+	key = zend_string_init("buffer", sizeof("buffer")-1, 0);
+	ZVAL_COPY(&zv, &intern->buffer_zval);
+	zend_hash_update(ht, key, &zv);
+	zend_string_release(key);
+
+	ZVAL_LONG(&zv, intern->offset);
+	key = zend_string_init("offset", sizeof("offset")-1, 0);
+	zend_hash_update(ht, key, &zv);
+	zend_string_release(key);
+
+	ZVAL_LONG(&zv, intern->length);
+	key = zend_string_init("length", sizeof("length")-1, 0);
+	zend_hash_update(ht, key, &zv);
+	zend_string_release(key);
+
+	return ht;
+}
+
+static HashTable *array_buffer_view_get_debug_info(zval_or_zend_object *obj, int *is_temp)
+{
+	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(obj);
+	HashTable *props = array_buffer_view_get_properties(obj);
 	HashTable *ht;
 	int i;
 
@@ -521,35 +567,6 @@ static HashTable *array_buffer_view_get_debug_info(zval *obj, int *is_temp)
 		zend_hash_index_update(ht, i, &value);
 	}
 	
-	return ht;
-}
-
-static HashTable *array_buffer_view_get_properties(zval *obj)
-{
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(obj);
-	HashTable *ht = zend_std_get_properties(obj);
-        zend_string *key;
-	zval zv;
-
-	if (Z_ISUNDEF(intern->buffer_zval)) {
-		return ht;
-	}
-
-        key = zend_string_init("buffer", sizeof("buffer")-1, 0);
-        ZVAL_COPY(&zv, &intern->buffer_zval);
-	zend_hash_update(ht, key, &zv);
-        zend_string_release(key);
-
-	ZVAL_LONG(&zv, intern->offset);
-        key = zend_string_init("offset", sizeof("offset")-1, 0);
-	zend_hash_update(ht, key, &zv);
-        zend_string_release(key);
-
-	ZVAL_LONG(&zv, intern->length);
-        key = zend_string_init("length", sizeof("length")-1, 0);
-	zend_hash_update(ht, key, &zv);
-        zend_string_release(key);
-
 	return ht;
 }
 
@@ -601,7 +618,11 @@ const zend_object_iterator_funcs buffer_view_iterator_funcs = {
 	buffer_view_iterator_get_current_data,
 	buffer_view_iterator_get_current_key,
 	buffer_view_iterator_move_forward,
-	buffer_view_iterator_rewind
+	buffer_view_iterator_rewind,
+	NULL,
+#if PHP_VERSION_ID >= 80000
+	NULL,
+#endif
 };
 
 zend_object_iterator *buffer_view_get_iterator(zend_class_entry *ce, zval *object, int by_ref)
@@ -695,7 +716,7 @@ PHP_FUNCTION(array_buffer_view_wakeup)
 		return;
 	}
 
-	props = zend_std_get_properties(getThis());
+	props = zend_std_get_properties(THIS_ZVAL_OR_OBJ);
 
         key = zend_string_init("buffer", sizeof("buffer")-1, 0);
 	buffer_zv = zend_hash_find(props, key);
@@ -964,7 +985,11 @@ static PHP_MINIT_FUNCTION(buffer)
 	array_buffer_view_handlers.write_dimension = array_buffer_view_write_dimension;
 	array_buffer_view_handlers.has_dimension   = array_buffer_view_has_dimension;
 	array_buffer_view_handlers.unset_dimension = array_buffer_view_unset_dimension;
+#if PHP_VERSION_ID >= 80000
+	array_buffer_view_handlers.compare = array_buffer_view_compare_objects;
+#else
 	array_buffer_view_handlers.compare_objects = array_buffer_view_compare_objects;
+#endif
 	array_buffer_view_handlers.get_debug_info  = array_buffer_view_get_debug_info;
 	array_buffer_view_handlers.free_obj        = array_buffer_view_free;
 	array_buffer_view_handlers.get_properties  = array_buffer_view_get_properties;
