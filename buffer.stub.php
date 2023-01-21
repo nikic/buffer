@@ -4,7 +4,7 @@
  * @generate-legacy-arginfo
  */
 
-class ArrayBuffer implements Serializable {
+final class ArrayBuffer implements Serializable {
     public function __construct(int $length) {}
 
     public function serialize(): string {}
@@ -16,434 +16,124 @@ class ArrayBuffer implements Serializable {
     public function __unserialize(array $data): void {}
 }
 
-class Int8Array implements ArrayAccess, Iterator {
-    /** @implementation-alias array_buffer_view_ctor */
+abstract class TypedArray implements ArrayAccess, Iterator {
+    /** @implementation-alias TypedArray::__construct */
     public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
-    /** @implementation-alias array_buffer_view_wakeup */
     public function __wakeup(): void {}
 
     /**
      * @param int $offset
-     * @implementation-alias array_buffer_view_offset_get
      */
-    public function offsetGet($offset): int {}
-
-    /**
-     * @param int $offset
-     * @param int $value
-     * @implementation-alias array_buffer_view_offset_set
-     */
-    public function offsetSet($offset, $value): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_exists
-     */
-    public function offsetExists($offset): bool {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_unset
-     */
-    public function offsetUnset($offset): void {}
-
-    /** @implementation-alias array_buffer_view_rewind */
-    public function rewind(): void {}
-
-    /** @implementation-alias array_buffer_view_next */
-    public function next(): void {}
-
-    /** @implementation-alias array_buffer_view_valid */
-    public function valid(): bool {}
-
-    /** @implementation-alias array_buffer_view_key */
-    public function key(): int {}
-
-    /** @implementation-alias array_buffer_view_current */
-    public function current(): int {}
-
-    /** @implementation-alias array_buffer_view_serialize */
-    public function __serialize(): array {}
-
-    /** @implementation-alias array_buffer_view_unserialize */
-    public function __unserialize(array $data): void {}
-}
-
-class UInt8Array implements ArrayAccess, Iterator {
-    /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
-
-    /** @implementation-alias array_buffer_view_wakeup */
-    public function __wakeup(): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_get
-     */
-    public function offsetGet($offset): int {}
-
-    /**
-     * @param int $offset
-     * @param int $value
-     * @implementation-alias array_buffer_view_offset_set
-     */
-    public function offsetSet($offset, $value): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_exists
-     */
-    public function offsetExists($offset): bool {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_unset
-     */
-    public function offsetUnset($offset): void {}
-
-    /** @implementation-alias array_buffer_view_rewind */
-    public function rewind(): void {}
-
-    /** @implementation-alias array_buffer_view_next */
-    public function next(): void {}
-
-    /** @implementation-alias array_buffer_view_valid */
-    public function valid(): bool {}
-
-    /** @implementation-alias array_buffer_view_key */
-    public function key(): int {}
-
-    /** @implementation-alias array_buffer_view_current */
-    public function current(): int {}
-
-    /** @implementation-alias array_buffer_view_serialize */
-    public function __serialize(): array {}
-
-    /** @implementation-alias array_buffer_view_unserialize */
-    public function __unserialize(array $data): void {}
-}
-
-class Int16Array implements ArrayAccess, Iterator {
-    /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
-
-    /** @implementation-alias array_buffer_view_wakeup */
-    public function __wakeup(): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_get
-     */
-    public function offsetGet($offset): int {}
-
-    /**
-     * @param int $offset
-     * @param int $value
-     * @implementation-alias array_buffer_view_offset_set
-     */
-    public function offsetSet($offset, $value): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_exists
-     */
-    public function offsetExists($offset): bool {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_unset
-     */
-    public function offsetUnset($offset): void {}
-
-    /** @implementation-alias array_buffer_view_rewind */
-    public function rewind(): void {}
-
-    /** @implementation-alias array_buffer_view_next */
-    public function next(): void {}
-
-    /** @implementation-alias array_buffer_view_valid */
-    public function valid(): bool {}
-
-    /** @implementation-alias array_buffer_view_key */
-    public function key(): int {}
-
-    /** @implementation-alias array_buffer_view_current */
-    public function current(): int {}
-
-    /** @implementation-alias array_buffer_view_serialize */
-    public function __serialize(): array {}
-
-    /** @implementation-alias array_buffer_view_unserialize */
-    public function __unserialize(array $data): void {}
-}
-
-class UInt16Array implements ArrayAccess, Iterator {
-    /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
-
-    /** @implementation-alias array_buffer_view_wakeup */
-    public function __wakeup(): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_get
-     */
-    public function offsetGet($offset): int {}
-
-    /**
-     * @param int $offset
-     * @param int $value
-     * @implementation-alias array_buffer_view_offset_set
-     */
-    public function offsetSet($offset, $value): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_exists
-     */
-    public function offsetExists($offset): bool {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_unset
-     */
-    public function offsetUnset($offset): void {}
-
-    /** @implementation-alias array_buffer_view_rewind */
-    public function rewind(): void {}
-
-    /** @implementation-alias array_buffer_view_next */
-    public function next(): void {}
-
-    /** @implementation-alias array_buffer_view_valid */
-    public function valid(): bool {}
-
-    /** @implementation-alias array_buffer_view_key */
-    public function key(): int {}
-
-    /** @implementation-alias array_buffer_view_current */
-    public function current(): int {}
-
-    /** @implementation-alias array_buffer_view_serialize */
-    public function __serialize(): array {}
-
-    /** @implementation-alias array_buffer_view_unserialize */
-    public function __unserialize(array $data): void {}
-}
-
-class Int32Array implements ArrayAccess, Iterator {
-    /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
-
-    /** @implementation-alias array_buffer_view_wakeup */
-    public function __wakeup(): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_get
-     */
-    public function offsetGet($offset): int {}
-
-    /**
-     * @param int $offset
-     * @param int $value
-     * @implementation-alias array_buffer_view_offset_set
-     */
-    public function offsetSet($offset, $value): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_exists
-     */
-    public function offsetExists($offset): bool {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_unset
-     */
-    public function offsetUnset($offset): void {}
-
-    /** @implementation-alias array_buffer_view_rewind */
-    public function rewind(): void {}
-
-    /** @implementation-alias array_buffer_view_next */
-    public function next(): void {}
-
-    /** @implementation-alias array_buffer_view_valid */
-    public function valid(): bool {}
-
-    /** @implementation-alias array_buffer_view_key */
-    public function key(): int {}
-
-    /** @implementation-alias array_buffer_view_current */
-    public function current(): int {}
-
-    /** @implementation-alias array_buffer_view_serialize */
-    public function __serialize(): array {}
-
-    /** @implementation-alias array_buffer_view_unserialize */
-    public function __unserialize(array $data): void {}
-}
-
-class UInt32Array implements ArrayAccess, Iterator {
-    /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
-
-    /** @implementation-alias array_buffer_view_wakeup */
-    public function __wakeup(): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_get
-     */
-    public function offsetGet($offset): int {}
+    public function offsetGet($offset): int|float {}
 
     /**
      * @param int $offset
      * @param int|float $value
-     * @implementation-alias array_buffer_view_offset_set
      */
     public function offsetSet($offset, $value): void {}
 
     /**
      * @param int $offset
-     * @implementation-alias array_buffer_view_offset_exists
      */
     public function offsetExists($offset): bool {}
 
     /**
      * @param int $offset
-     * @implementation-alias array_buffer_view_offset_unset
      */
     public function offsetUnset($offset): void {}
 
-    /** @implementation-alias array_buffer_view_rewind */
     public function rewind(): void {}
 
-    /** @implementation-alias array_buffer_view_next */
     public function next(): void {}
 
-    /** @implementation-alias array_buffer_view_valid */
     public function valid(): bool {}
 
-    /** @implementation-alias array_buffer_view_key */
     public function key(): int {}
 
-    /** @implementation-alias array_buffer_view_current */
     public function current(): int|float {}
 
-    /** @implementation-alias array_buffer_view_serialize */
     public function __serialize(): array {}
 
-    /** @implementation-alias array_buffer_view_unserialize */
     public function __unserialize(array $data): void {}
 }
 
-class FloatArray implements ArrayAccess, Iterator {
-    /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
-
-    /** @implementation-alias array_buffer_view_wakeup */
-    public function __wakeup(): void {}
-
+final class Int8Array extends TypedArray {
     /**
      * @param int $offset
-     * @implementation-alias array_buffer_view_offset_get
+     * @implementation-alias TypedArray::offsetGet
      */
     public function offsetGet($offset): int {}
 
-    /**
-     * @param int $offset
-     * @param float $value
-     * @implementation-alias array_buffer_view_offset_set
-     */
-    public function offsetSet($offset, $value): void {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_exists
-     */
-    public function offsetExists($offset): bool {}
-
-    /**
-     * @param int $offset
-     * @implementation-alias array_buffer_view_offset_unset
-     */
-    public function offsetUnset($offset): void {}
-
-    /** @implementation-alias array_buffer_view_rewind */
-    public function rewind(): void {}
-
-    /** @implementation-alias array_buffer_view_next */
-    public function next(): void {}
-
-    /** @implementation-alias array_buffer_view_valid */
-    public function valid(): bool {}
-
-    /** @implementation-alias array_buffer_view_key */
-    public function key(): int {}
-
-    /** @implementation-alias array_buffer_view_current */
-    public function current(): float {}
-
-    /** @implementation-alias array_buffer_view_serialize */
-    public function __serialize(): array {}
-
-    /** @implementation-alias array_buffer_view_unserialize */
-    public function __unserialize(array $data): void {}
+    /** @implementation-alias TypedArray::current */
+    public function current(): int {}
 }
 
-class DoubleArray implements ArrayAccess, Iterator {
-    /** @implementation-alias array_buffer_view_ctor */
-    public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
-
-    /** @implementation-alias array_buffer_view_wakeup */
-    public function __wakeup(): void {}
-
+final class UInt8Array extends TypedArray {
     /**
      * @param int $offset
-     * @implementation-alias array_buffer_view_offset_get
+     * @implementation-alias TypedArray::offsetGet
      */
     public function offsetGet($offset): int {}
 
+    /** @implementation-alias TypedArray::current */
+    public function current(): int {}
+}
+
+final class Int16Array extends TypedArray {
     /**
      * @param int $offset
-     * @param float $value
-     * @implementation-alias array_buffer_view_offset_set
+     * @implementation-alias TypedArray::offsetGet
      */
-    public function offsetSet($offset, $value): void {}
+    public function offsetGet($offset): int {}
 
+    /** @implementation-alias TypedArray::current */
+    public function current(): int {}
+}
+
+final class UInt16Array extends TypedArray {
     /**
      * @param int $offset
-     * @implementation-alias array_buffer_view_offset_exists
+     * @implementation-alias TypedArray::offsetGet
      */
-    public function offsetExists($offset): bool {}
+    public function offsetGet($offset): int {}
 
+    /** @implementation-alias TypedArray::current */
+    public function current(): int {}
+}
+
+final class Int32Array extends TypedArray {
     /**
      * @param int $offset
-     * @implementation-alias array_buffer_view_offset_unset
+     * @implementation-alias TypedArray::offsetGet
      */
-    public function offsetUnset($offset): void {}
+    public function offsetGet($offset): int {}
 
-    /** @implementation-alias array_buffer_view_rewind */
-    public function rewind(): void {}
+    /** @implementation-alias TypedArray::current */
+    public function current(): int {}
+}
 
-    /** @implementation-alias array_buffer_view_next */
-    public function next(): void {}
+final class UInt32Array extends TypedArray {
+}
 
-    /** @implementation-alias array_buffer_view_valid */
-    public function valid(): bool {}
+final class FloatArray extends TypedArray {
+    /**
+     * @param int $offset
+     * @implementation-alias TypedArray::offsetGet
+     */
+    public function offsetGet($offset): float {}
 
-    /** @implementation-alias array_buffer_view_key */
-    public function key(): int {}
-
-    /** @implementation-alias array_buffer_view_current */
+    /** @implementation-alias TypedArray::current */
     public function current(): float {}
+}
 
-    /** @implementation-alias array_buffer_view_serialize */
-    public function __serialize(): array {}
+final class DoubleArray extends TypedArray {
+    /**
+     * @param int $offset
+     * @implementation-alias TypedArray::offsetGet
+     */
+    public function offsetGet($offset): float {}
 
-    /** @implementation-alias array_buffer_view_unserialize */
-    public function __unserialize(array $data): void {}
+    /** @implementation-alias TypedArray::current */
+    public function current(): float {}
 }

@@ -73,6 +73,7 @@ ZEND_GET_MODULE(buffer)
 
 
 zend_class_entry *array_buffer_ce;
+zend_class_entry *typed_array_ce;
 
 zend_class_entry *int8_array_ce;
 zend_class_entry *uint8_array_ce;
@@ -283,41 +284,31 @@ static void array_buffer_view_free(zend_object *obj)
 
 zend_object *array_buffer_view_create_object(zend_class_entry *class_type)
 {
-	buffer_view_object *intern = emalloc(sizeof(buffer_view_object) +
-			                                         zend_object_properties_size(class_type));
+	buffer_view_object *intern = zend_object_alloc(sizeof(buffer_view_object), class_type);
 	ZVAL_UNDEF(&intern->buffer_zval);
 	intern->offset = 0;
 	intern->length = 0;
 	intern->current_offset = 0;
 
 	zend_object_std_init(&intern->std, class_type);
-	{
-		zend_class_entry *base_class_type = class_type;
-
-		while (base_class_type->parent) {
-			base_class_type = base_class_type->parent;
-		}
-
-		if (base_class_type == int8_array_ce) {
-			intern->type = buffer_view_int8;
-		} else if (base_class_type == uint8_array_ce) {
-			intern->type = buffer_view_uint8;
-		} else if (base_class_type == int16_array_ce) {
-			intern->type = buffer_view_int16;
-		} else if (base_class_type == uint16_array_ce) {
-			intern->type = buffer_view_uint16;
-		} else if (base_class_type == int32_array_ce) {
-			intern->type = buffer_view_int32;
-		} else if (base_class_type == uint32_array_ce) {
-			intern->type = buffer_view_uint32;
-		} else if (base_class_type == float_array_ce) {
-			intern->type = buffer_view_float;
-		} else if (base_class_type == double_array_ce) {
-			intern->type = buffer_view_double;
-		} else {
-			/* Should never happen */
-			zend_error(E_ERROR, "Buffer view does not have a valid base class");
-		}
+	if (class_type == int8_array_ce) {
+		intern->type = buffer_view_int8;
+	} else if (class_type == uint8_array_ce) {
+		intern->type = buffer_view_uint8;
+	} else if (class_type == int16_array_ce) {
+		intern->type = buffer_view_int16;
+	} else if (class_type == uint16_array_ce) {
+		intern->type = buffer_view_uint16;
+	} else if (class_type == int32_array_ce) {
+		intern->type = buffer_view_int32;
+	} else if (class_type == uint32_array_ce) {
+		intern->type = buffer_view_uint32;
+	} else if (class_type == float_array_ce) {
+		intern->type = buffer_view_float;
+	} else if (class_type == double_array_ce) {
+		intern->type = buffer_view_double;
+	} else {
+		zend_error(E_ERROR, "Trying to instantiate an invalid TypedArray extension");
 	}
 
 	intern->std.handlers = &array_buffer_view_handlers;
@@ -685,7 +676,7 @@ zend_object_iterator *buffer_view_get_iterator(zend_class_entry *ce, zval *objec
 	return (zend_object_iterator*) iter;
 }
 
-PHP_FUNCTION(array_buffer_view_ctor)
+PHP_METHOD(TypedArray, __construct)
 {
 	zval *buffer_zval;
 	zend_long offset = 0, length = 0;
@@ -733,7 +724,7 @@ PHP_FUNCTION(array_buffer_view_ctor)
 	view_intern->buf.as_int8 += offset;
 }
 
-PHP_FUNCTION(array_buffer_view_wakeup)
+PHP_METHOD(TypedArray, __wakeup)
 {
 	buffer_view_object *intern;
 	HashTable *props;
@@ -798,7 +789,7 @@ PHP_FUNCTION(array_buffer_view_wakeup)
 	);
 }
 
-PHP_FUNCTION(array_buffer_view_offset_get)
+PHP_METHOD(TypedArray, offsetGet)
 {
 	buffer_view_object *intern;
 	long offset;
@@ -819,7 +810,7 @@ PHP_FUNCTION(array_buffer_view_offset_get)
 	RETURN_ZVAL(&retval, 1, 0);
 }
 
-PHP_FUNCTION(array_buffer_view_offset_set)
+PHP_METHOD(TypedArray, offsetSet)
 {
 	buffer_view_object *intern;
 	long offset;
@@ -839,7 +830,7 @@ PHP_FUNCTION(array_buffer_view_offset_set)
 	buffer_view_offset_set(intern, offset, value);
 }
 
-PHP_FUNCTION(array_buffer_view_offset_exists)
+PHP_METHOD(TypedArray, offsetExists)
 {
 	buffer_view_object *intern;
 	long offset;
@@ -853,7 +844,7 @@ PHP_FUNCTION(array_buffer_view_offset_exists)
 	RETURN_BOOL(offset < intern->length);
 }
 
-PHP_FUNCTION(array_buffer_view_offset_unset)
+PHP_METHOD(TypedArray, offsetUnset)
 {
 	long offset;
 
@@ -866,7 +857,7 @@ PHP_FUNCTION(array_buffer_view_offset_unset)
 	zend_throw_exception(NULL, "Cannot unset offsets in a typed array", 0);
 }
 
-PHP_FUNCTION(array_buffer_view_rewind)
+PHP_METHOD(TypedArray, rewind)
 {
 	buffer_view_object *intern;
 
@@ -878,7 +869,7 @@ PHP_FUNCTION(array_buffer_view_rewind)
 	intern->current_offset = 0;
 }
 
-PHP_FUNCTION(array_buffer_view_next)
+PHP_METHOD(TypedArray, next)
 {
 	buffer_view_object *intern;
 
@@ -890,7 +881,7 @@ PHP_FUNCTION(array_buffer_view_next)
 	intern->current_offset++;
 }
 
-PHP_FUNCTION(array_buffer_view_valid)
+PHP_METHOD(TypedArray, valid)
 {
 	buffer_view_object *intern;
 
@@ -902,7 +893,7 @@ PHP_FUNCTION(array_buffer_view_valid)
 	RETURN_BOOL(intern->current_offset < intern->length);
 }
 
-PHP_FUNCTION(array_buffer_view_key)
+PHP_METHOD(TypedArray, key)
 {
 	buffer_view_object *intern;
 
@@ -914,7 +905,7 @@ PHP_FUNCTION(array_buffer_view_key)
 	RETURN_LONG((long) intern->current_offset);
 }
 
-PHP_FUNCTION(array_buffer_view_current)
+PHP_METHOD(TypedArray, current)
 {
 	buffer_view_object *intern;
 
@@ -926,7 +917,7 @@ PHP_FUNCTION(array_buffer_view_current)
 	buffer_view_offset_get(intern, intern->current_offset, return_value);
 }
 
-PHP_FUNCTION(array_buffer_view_serialize)
+PHP_METHOD(TypedArray, __serialize)
 {
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -941,7 +932,7 @@ PHP_FUNCTION(array_buffer_view_serialize)
 	add_assoc_long(return_value, "length", intern->length);
 }
 
-PHP_FUNCTION(array_buffer_view_unserialize)
+PHP_METHOD(TypedArray, __unserialize)
 {
 	HashTable *ht;
 
@@ -997,7 +988,7 @@ static PHP_MINIT_FUNCTION(buffer)
 
 	INIT_CLASS_ENTRY(tmp_ce, "ArrayBuffer", class_ArrayBuffer_methods);
 	array_buffer_ce = zend_register_internal_class(&tmp_ce);
-	array_buffer_ce->ce_flags |= ZEND_ACC_NO_DYNAMIC_PROPERTIES;
+	array_buffer_ce->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 	array_buffer_ce->create_object = array_buffer_create_object;
 	memcpy(&array_buffer_handlers, zend_get_std_object_handlers(), sizeof(array_buffer_handlers));
 	array_buffer_handlers.offset = XtOffsetOf(buffer_object, std);
@@ -1007,13 +998,17 @@ static PHP_MINIT_FUNCTION(buffer)
 
 	zend_class_implements(array_buffer_ce, 1, zend_ce_serializable);
 
+	INIT_CLASS_ENTRY(tmp_ce, "TypedArray", class_TypedArray_methods);
+	typed_array_ce = zend_register_internal_class(&tmp_ce);
+	typed_array_ce->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;
+	typed_array_ce->create_object = array_buffer_view_create_object;
+	typed_array_ce->get_iterator = buffer_view_get_iterator;
+	zend_class_implements(typed_array_ce, 2, zend_ce_arrayaccess, zend_ce_iterator);
+
 #define DEFINE_ARRAY_BUFFER_VIEW_CLASS(class_name, type) \
 	INIT_CLASS_ENTRY(tmp_ce, #class_name, class_ ## class_name ## _methods); \
-	type##_array_ce = zend_register_internal_class(&tmp_ce);                 \
-	type##_array_ce->create_object = array_buffer_view_create_object;        \
-	type##_array_ce->get_iterator = buffer_view_get_iterator;                \
-	zend_class_implements(type##_array_ce, 2,                                \
-		zend_ce_arrayaccess, zend_ce_iterator);
+	type##_array_ce = zend_register_internal_class_ex(&tmp_ce, typed_array_ce); \
+	type##_array_ce->ce_flags |= ZEND_ACC_FINAL;
 
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(Int8Array,   int8);
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(UInt8Array,  uint8);
