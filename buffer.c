@@ -35,11 +35,7 @@
 #include "ext/standard/php_var.h"
 #include "zend_smart_str_public.h"
 
-#if defined(PHP_WIN32)
-# include "win32/php_stdint.h"
-#elif defined(HAVE_STDINT_H)
-# include <stdint.h>
-#endif
+#include <stdint.h>
 
 #if PHP_VERSION_ID >= 80000
 # include "buffer_arginfo.h"
