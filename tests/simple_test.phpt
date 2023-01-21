@@ -2,8 +2,6 @@
 Buffer BasicTests - Simple Test
 --DESCRIPTION--
 Test access
---CREDITS--
-Nikita Popov
 --SKIPIF--
 <?php if(!extension_loaded('buffer')) die('skip buffer n/a'); ?>
 --FILE--
@@ -48,7 +46,7 @@ echo "8\n";
 int(1234)
 5
 6
-float(1.7292023049768E-42)
+float(1.7292023049768%sE-42)
 7
 8
 

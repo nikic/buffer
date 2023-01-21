@@ -1,11 +1,6 @@
-// $Id$
 // vim:ft=javascript
 
-// If your extension references something external, use ARG_WITH
-// ARG_WITH("buffer", "for buffer support", "no");
-
-// Otherwise, use ARG_ENABLE
-// ARG_ENABLE("buffer", "enable buffer support", "no");
+ARG_ENABLE("buffer", "enable buffer support", "no");
 
 if (PHP_BUFFER != "no") {
 	EXTENSION("buffer", "buffer.c");

@@ -1,0 +1,348 @@
+/* This is a generated file, edit the .stub.php file instead.
+ * Stub hash: f99406d9981d1f758a96c5421e6cc06a60ec315f */
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer___construct, 0, 0, 1)
+	ZEND_ARG_INFO(0, length)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer_serialize, 0, 0, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer_unserialize, 0, 0, 1)
+	ZEND_ARG_INFO(0, data)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Int8Array___construct, 0, 0, 1)
+	ZEND_ARG_INFO(0, buffer)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Int8Array___wakeup arginfo_class_ArrayBuffer_serialize
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Int8Array_offsetGet, 0, 0, 1)
+	ZEND_ARG_INFO(0, offset)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_class_Int8Array_offsetSet, 0, 0, 2)
+	ZEND_ARG_INFO(0, offset)
+	ZEND_ARG_INFO(0, value)
+ZEND_END_ARG_INFO()
+
+#define arginfo_class_Int8Array_offsetExists arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_Int8Array_offsetUnset arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_Int8Array_rewind arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int8Array_next arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int8Array_valid arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int8Array_key arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int8Array_current arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt8Array___construct arginfo_class_Int8Array___construct
+
+#define arginfo_class_UInt8Array___wakeup arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt8Array_offsetGet arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_UInt8Array_offsetSet arginfo_class_Int8Array_offsetSet
+
+#define arginfo_class_UInt8Array_offsetExists arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_UInt8Array_offsetUnset arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_UInt8Array_rewind arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt8Array_next arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt8Array_valid arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt8Array_key arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt8Array_current arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int16Array___construct arginfo_class_Int8Array___construct
+
+#define arginfo_class_Int16Array___wakeup arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int16Array_offsetGet arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_Int16Array_offsetSet arginfo_class_Int8Array_offsetSet
+
+#define arginfo_class_Int16Array_offsetExists arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_Int16Array_offsetUnset arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_Int16Array_rewind arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int16Array_next arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int16Array_valid arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int16Array_key arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int16Array_current arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt16Array___construct arginfo_class_Int8Array___construct
+
+#define arginfo_class_UInt16Array___wakeup arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt16Array_offsetGet arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_UInt16Array_offsetSet arginfo_class_Int8Array_offsetSet
+
+#define arginfo_class_UInt16Array_offsetExists arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_UInt16Array_offsetUnset arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_UInt16Array_rewind arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt16Array_next arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt16Array_valid arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt16Array_key arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt16Array_current arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int32Array___construct arginfo_class_Int8Array___construct
+
+#define arginfo_class_Int32Array___wakeup arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int32Array_offsetGet arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_Int32Array_offsetSet arginfo_class_Int8Array_offsetSet
+
+#define arginfo_class_Int32Array_offsetExists arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_Int32Array_offsetUnset arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_Int32Array_rewind arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int32Array_next arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int32Array_valid arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int32Array_key arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_Int32Array_current arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt32Array___construct arginfo_class_Int8Array___construct
+
+#define arginfo_class_UInt32Array___wakeup arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt32Array_offsetGet arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_UInt32Array_offsetSet arginfo_class_Int8Array_offsetSet
+
+#define arginfo_class_UInt32Array_offsetExists arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_UInt32Array_offsetUnset arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_UInt32Array_rewind arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt32Array_next arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt32Array_valid arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt32Array_key arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_UInt32Array_current arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_FloatArray___construct arginfo_class_Int8Array___construct
+
+#define arginfo_class_FloatArray___wakeup arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_FloatArray_offsetGet arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_FloatArray_offsetSet arginfo_class_Int8Array_offsetSet
+
+#define arginfo_class_FloatArray_offsetExists arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_FloatArray_offsetUnset arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_FloatArray_rewind arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_FloatArray_next arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_FloatArray_valid arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_FloatArray_key arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_FloatArray_current arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_DoubleArray___construct arginfo_class_Int8Array___construct
+
+#define arginfo_class_DoubleArray___wakeup arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_DoubleArray_offsetGet arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_DoubleArray_offsetSet arginfo_class_Int8Array_offsetSet
+
+#define arginfo_class_DoubleArray_offsetExists arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_DoubleArray_offsetUnset arginfo_class_Int8Array_offsetGet
+
+#define arginfo_class_DoubleArray_rewind arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_DoubleArray_next arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_DoubleArray_valid arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_DoubleArray_key arginfo_class_ArrayBuffer_serialize
+
+#define arginfo_class_DoubleArray_current arginfo_class_ArrayBuffer_serialize
+
+
+ZEND_METHOD(ArrayBuffer, __construct);
+ZEND_METHOD(ArrayBuffer, serialize);
+ZEND_METHOD(ArrayBuffer, unserialize);
+ZEND_FUNCTION(array_buffer_view_ctor);
+ZEND_FUNCTION(array_buffer_view_wakeup);
+ZEND_FUNCTION(array_buffer_view_offset_get);
+ZEND_FUNCTION(array_buffer_view_offset_set);
+ZEND_FUNCTION(array_buffer_view_offset_exists);
+ZEND_FUNCTION(array_buffer_view_offset_unset);
+ZEND_FUNCTION(array_buffer_view_rewind);
+ZEND_FUNCTION(array_buffer_view_next);
+ZEND_FUNCTION(array_buffer_view_valid);
+ZEND_FUNCTION(array_buffer_view_key);
+ZEND_FUNCTION(array_buffer_view_current);
+
+
+static const zend_function_entry class_ArrayBuffer_methods[] = {
+	ZEND_ME(ArrayBuffer, __construct, arginfo_class_ArrayBuffer___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME(ArrayBuffer, serialize, arginfo_class_ArrayBuffer_serialize, ZEND_ACC_PUBLIC)
+	ZEND_ME(ArrayBuffer, unserialize, arginfo_class_ArrayBuffer_unserialize, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_Int8Array_methods[] = {
+	ZEND_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_class_Int8Array___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_class_Int8Array___wakeup, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_class_Int8Array_offsetGet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_class_Int8Array_offsetSet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_class_Int8Array_offsetExists, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_class_Int8Array_offsetUnset, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_class_Int8Array_rewind, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(next, array_buffer_view_next, arginfo_class_Int8Array_next, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_Int8Array_valid, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_Int8Array_key, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_Int8Array_current, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_UInt8Array_methods[] = {
+	ZEND_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_class_UInt8Array___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_class_UInt8Array___wakeup, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_class_UInt8Array_offsetGet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_class_UInt8Array_offsetSet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_class_UInt8Array_offsetExists, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_class_UInt8Array_offsetUnset, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_class_UInt8Array_rewind, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(next, array_buffer_view_next, arginfo_class_UInt8Array_next, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_UInt8Array_valid, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_UInt8Array_key, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_UInt8Array_current, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_Int16Array_methods[] = {
+	ZEND_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_class_Int16Array___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_class_Int16Array___wakeup, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_class_Int16Array_offsetGet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_class_Int16Array_offsetSet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_class_Int16Array_offsetExists, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_class_Int16Array_offsetUnset, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_class_Int16Array_rewind, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(next, array_buffer_view_next, arginfo_class_Int16Array_next, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_Int16Array_valid, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_Int16Array_key, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_Int16Array_current, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_UInt16Array_methods[] = {
+	ZEND_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_class_UInt16Array___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_class_UInt16Array___wakeup, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_class_UInt16Array_offsetGet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_class_UInt16Array_offsetSet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_class_UInt16Array_offsetExists, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_class_UInt16Array_offsetUnset, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_class_UInt16Array_rewind, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(next, array_buffer_view_next, arginfo_class_UInt16Array_next, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_UInt16Array_valid, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_UInt16Array_key, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_UInt16Array_current, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_Int32Array_methods[] = {
+	ZEND_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_class_Int32Array___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_class_Int32Array___wakeup, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_class_Int32Array_offsetGet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_class_Int32Array_offsetSet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_class_Int32Array_offsetExists, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_class_Int32Array_offsetUnset, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_class_Int32Array_rewind, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(next, array_buffer_view_next, arginfo_class_Int32Array_next, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_Int32Array_valid, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_Int32Array_key, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_Int32Array_current, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_UInt32Array_methods[] = {
+	ZEND_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_class_UInt32Array___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_class_UInt32Array___wakeup, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_class_UInt32Array_offsetGet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_class_UInt32Array_offsetSet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_class_UInt32Array_offsetExists, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_class_UInt32Array_offsetUnset, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_class_UInt32Array_rewind, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(next, array_buffer_view_next, arginfo_class_UInt32Array_next, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_UInt32Array_valid, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_UInt32Array_key, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_UInt32Array_current, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_FloatArray_methods[] = {
+	ZEND_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_class_FloatArray___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_class_FloatArray___wakeup, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_class_FloatArray_offsetGet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_class_FloatArray_offsetSet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_class_FloatArray_offsetExists, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_class_FloatArray_offsetUnset, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_class_FloatArray_rewind, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(next, array_buffer_view_next, arginfo_class_FloatArray_next, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_FloatArray_valid, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_FloatArray_key, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_FloatArray_current, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};
+
+
+static const zend_function_entry class_DoubleArray_methods[] = {
+	ZEND_ME_MAPPING(__construct, array_buffer_view_ctor, arginfo_class_DoubleArray___construct, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(__wakeup, array_buffer_view_wakeup, arginfo_class_DoubleArray___wakeup, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetGet, array_buffer_view_offset_get, arginfo_class_DoubleArray_offsetGet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetSet, array_buffer_view_offset_set, arginfo_class_DoubleArray_offsetSet, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_class_DoubleArray_offsetExists, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(offsetUnset, array_buffer_view_offset_unset, arginfo_class_DoubleArray_offsetUnset, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(rewind, array_buffer_view_rewind, arginfo_class_DoubleArray_rewind, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(next, array_buffer_view_next, arginfo_class_DoubleArray_next, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(valid, array_buffer_view_valid, arginfo_class_DoubleArray_valid, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(key, array_buffer_view_key, arginfo_class_DoubleArray_key, ZEND_ACC_PUBLIC)
+	ZEND_ME_MAPPING(current, array_buffer_view_current, arginfo_class_DoubleArray_current, ZEND_ACC_PUBLIC)
+	ZEND_FE_END
+};

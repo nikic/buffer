@@ -42,6 +42,12 @@
 #endif
 
 #if PHP_VERSION_ID >= 80000
+# include "buffer_arginfo.h"
+#else
+# include "buffer_legacy_arginfo.h"
+#endif
+
+#if PHP_VERSION_ID >= 80000
 typedef zend_object zval_or_zend_object;
 # define BUFFER_FROM_ZVAL_OR_OBJ(z) php_buffer_fetch_object(z)
 # define BUFFER_VIEW_FROM_ZVAL_OR_OBJ(z) php_buffer_view_fetch_object(z)
@@ -889,65 +895,11 @@ PHP_FUNCTION(array_buffer_view_current)
 	buffer_view_offset_get(intern, intern->current_offset, return_value);
 }
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_ctor, 0, 0, 1)
-	ZEND_ARG_INFO(0, length)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_void, 0, 0, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_unserialize, 0, 0, 1)
-	ZEND_ARG_INFO(0, serialized)
-ZEND_END_ARG_INFO()
-
-const zend_function_entry array_buffer_functions[] = {
-	PHP_ME(ArrayBuffer, __construct, arginfo_buffer_ctor,        ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
-	PHP_ME(ArrayBuffer, serialize,   arginfo_buffer_void,        ZEND_ACC_PUBLIC)
-	PHP_ME(ArrayBuffer, unserialize, arginfo_buffer_unserialize, ZEND_ACC_PUBLIC)
-	PHP_FE_END
-};
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_view_ctor, 0, 0, 1)
-	ZEND_ARG_INFO(0, buffer)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_view_offset, 0, 0, 1)
-	ZEND_ARG_INFO(0, offset)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_view_offset_set, 0, 0, 2)
-	ZEND_ARG_INFO(0, offset)
-	ZEND_ARG_INFO(0, value)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO_EX(arginfo_buffer_view_void, 0, 0, 0)
-ZEND_END_ARG_INFO()
-
-const zend_function_entry array_buffer_view_functions[] = {
-	PHP_ME_MAPPING(__construct, array_buffer_view_ctor,           arginfo_buffer_view_ctor, ZEND_ACC_PUBLIC|ZEND_ACC_CTOR)
-	PHP_ME_MAPPING(__wakeup,    array_buffer_view_wakeup,         arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-
-	/* ArrayAccess */
-	PHP_ME_MAPPING(offsetGet,    array_buffer_view_offset_get,    arginfo_buffer_view_offset,     ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(offsetSet,    array_buffer_view_offset_set,    arginfo_buffer_view_offset_set, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(offsetExists, array_buffer_view_offset_exists, arginfo_buffer_view_offset,     ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(offsetUnset,  array_buffer_view_offset_unset,  arginfo_buffer_view_offset,     ZEND_ACC_PUBLIC)
-
-	/* Iterator */
-	PHP_ME_MAPPING(rewind,       array_buffer_view_rewind,        arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(next,         array_buffer_view_next,          arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(valid,        array_buffer_view_valid,         arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(key,          array_buffer_view_key,           arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-	PHP_ME_MAPPING(current,      array_buffer_view_current,       arginfo_buffer_view_void, ZEND_ACC_PUBLIC)
-
-	PHP_FE_END
-};
-
 static PHP_MINIT_FUNCTION(buffer)
 {
 	zend_class_entry tmp_ce;
 
-	INIT_CLASS_ENTRY(tmp_ce, "ArrayBuffer", array_buffer_functions);
+	INIT_CLASS_ENTRY(tmp_ce, "ArrayBuffer", class_ArrayBuffer_methods);
 	array_buffer_ce = zend_register_internal_class(&tmp_ce);
 	array_buffer_ce->create_object = array_buffer_create_object;
 	memcpy(&array_buffer_handlers, zend_get_std_object_handlers(), sizeof(array_buffer_handlers));
@@ -958,8 +910,8 @@ static PHP_MINIT_FUNCTION(buffer)
 
 	zend_class_implements(array_buffer_ce, 1, zend_ce_serializable);
 
-#define DEFINE_ARRAY_BUFFER_VIEW_CLASS(class_name, type)                         \
-	INIT_CLASS_ENTRY(tmp_ce, #class_name, array_buffer_view_functions);      \
+#define DEFINE_ARRAY_BUFFER_VIEW_CLASS(class_name, type) \
+	INIT_CLASS_ENTRY(tmp_ce, #class_name, class_ ## class_name ## _methods); \
 	type##_array_ce = zend_register_internal_class(&tmp_ce);                 \
 	type##_array_ce->create_object = array_buffer_view_create_object;        \
 	type##_array_ce->get_iterator = buffer_view_get_iterator;                \
@@ -969,7 +921,7 @@ static PHP_MINIT_FUNCTION(buffer)
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(Int8Array,   int8);
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(UInt8Array,  uint8);
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(Int16Array,  int16);
-	DEFINE_ARRAY_BUFFER_VIEW_CLASS(Uint16Array, uint16);
+	DEFINE_ARRAY_BUFFER_VIEW_CLASS(UInt16Array, uint16);
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(Int32Array,  int32);
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(UInt32Array, uint32);
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(FloatArray,  float);
