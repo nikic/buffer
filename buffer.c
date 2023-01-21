@@ -291,6 +291,8 @@ zend_object *array_buffer_view_create_object(zend_class_entry *class_type)
 	intern->current_offset = 0;
 
 	zend_object_std_init(&intern->std, class_type);
+	intern->std.handlers = &array_buffer_view_handlers;
+
 	if (class_type == int8_array_ce) {
 		intern->type = buffer_view_int8;
 	} else if (class_type == uint8_array_ce) {
@@ -310,8 +312,6 @@ zend_object *array_buffer_view_create_object(zend_class_entry *class_type)
 	} else {
 		zend_error(E_ERROR, "Trying to instantiate an invalid TypedArray extension");
 	}
-
-	intern->std.handlers = &array_buffer_view_handlers;
 
 	return &intern->std;
 }
