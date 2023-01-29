@@ -511,56 +511,23 @@ static int array_buffer_view_compare(zval *obj1, zval *obj2)
 	}
 }
 
-/* TODO: We really shouldn't be doing this, but then we can't use __wakeup */
-static HashTable *array_buffer_view_get_properties(zend_object *obj)
-{
-	buffer_view_object *intern = php_buffer_view_fetch_object(obj);
-	HashTable *ht = zend_std_get_properties(obj);
-	zend_string *key;
-	zval zv;
-
-	if (Z_ISUNDEF(intern->buffer_zval)) {
-		return ht;
-	}
-
-	if (zend_hash_str_exists(ht, "buffer", sizeof("buffer")-1)) {
-		/* Don't reinitialized properties */
-		return ht;
-	}
-
-	key = zend_string_init("buffer", sizeof("buffer")-1, 0);
-	ZVAL_COPY(&zv, &intern->buffer_zval);
-	zend_hash_update(ht, key, &zv);
-	zend_string_release(key);
-
-	ZVAL_LONG(&zv, intern->offset);
-	key = zend_string_init("offset", sizeof("offset")-1, 0);
-	zend_hash_update(ht, key, &zv);
-	zend_string_release(key);
-
-	ZVAL_LONG(&zv, intern->length);
-	key = zend_string_init("length", sizeof("length")-1, 0);
-	zend_hash_update(ht, key, &zv);
-	zend_string_release(key);
-
-	return ht;
-}
-
 static HashTable *array_buffer_view_get_debug_info(zend_object *obj, int *is_temp)
 {
 	buffer_view_object *intern = php_buffer_view_fetch_object(obj);
-	HashTable *props = array_buffer_view_get_properties(obj);
-	HashTable *ht;
-	int i;
-
-	ALLOC_HASHTABLE(ht);
-	ZEND_INIT_SYMTABLE_EX(ht, intern->length + zend_hash_num_elements(props), 0);
-	zend_hash_copy(ht, props, (copy_ctor_func_t) zval_add_ref);
+	HashTable *ht = zend_new_array(0);
+	zval value;
 
 	*is_temp = 1;
+	Z_ADDREF(intern->buffer_zval);
+	zend_hash_str_add_new(ht, "buffer", sizeof("buffer")-1, &intern->buffer_zval);
 
-	for (i = 0; i < intern->length; ++i) {
-		zval value;
+	ZVAL_LONG(&value, intern->offset);
+	zend_hash_str_add_new(ht, "offset", sizeof("offset")-1, &value);
+
+	ZVAL_LONG(&value, intern->length);
+	zend_hash_str_add_new(ht, "length", sizeof("length")-1, &value);
+
+	for (size_t i = 0; i < intern->length; ++i) {
 		buffer_view_offset_get(intern, i, &value);
 		zend_hash_index_update(ht, i, &value);
 	}
@@ -690,71 +657,6 @@ PHP_METHOD(TypedArray, __construct)
 
 	view_intern->buf.as_int8 = buffer_intern->buffer;
 	view_intern->buf.as_int8 += offset;
-}
-
-PHP_METHOD(TypedArray, __wakeup)
-{
-	buffer_view_object *intern;
-	HashTable *props;
-	zval *buffer_zv, *offset_zv, *length_zv;
-        zend_string *key;
-
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
-
-	if (!Z_ISUNDEF(intern->buffer_zval)) {
-		zend_throw_exception(
-			NULL, "Cannot call __wakeup() on an already constructed object", 0
-		);
-		return;
-	}
-
-	props = zend_std_get_properties(&intern->std);
-
-	key = zend_string_init("buffer", sizeof("buffer")-1, 0);
-	buffer_zv = zend_hash_find(props, key);
-	zend_string_release(key);
-
-	key = zend_string_init("offset", sizeof("offset")-1, 0);
-	offset_zv = zend_hash_find(props, key);
-	zend_string_release(key);
-
-	key = zend_string_init("length", sizeof("length")-1, 0);
-	length_zv = zend_hash_find(props, key);
-	zend_string_release(key);
-
-	if(buffer_zv != NULL
-		 && offset_zv != NULL
-		 && length_zv != NULL
-		 && Z_TYPE_P(buffer_zv) == IS_OBJECT
-		 && Z_TYPE_P(offset_zv) == IS_LONG && Z_LVAL_P(offset_zv) >= 0
-		 && Z_TYPE_P(length_zv) == IS_LONG && Z_LVAL_P(length_zv) > 0
-		 && instanceof_function(Z_OBJCE_P(buffer_zv), array_buffer_ce)
-	) {
-		buffer_object *buffer_intern = Z_BUFFER_OBJ_P(buffer_zv);
-		size_t offset = Z_LVAL_P(offset_zv), length = Z_LVAL_P(length_zv);
-		size_t bytes_per_element = buffer_view_get_bytes_per_element(intern);
-		size_t max_length = (buffer_intern->length - offset) / bytes_per_element;
-
-		if (offset < buffer_intern->length && length <= max_length) {
-			ZVAL_COPY(&intern->buffer_zval, buffer_zv);
-
-			intern->offset = offset;
-			intern->length = length;
-
-			intern->buf.as_int8 = buffer_intern->buffer;
-			intern->buf.as_int8 += offset;
-
-			return;
-		}
-	}
-
-	zend_throw_exception(
-		NULL, "Invalid serialization data", 0
-	);
 }
 
 PHP_METHOD(TypedArray, offsetGet)
@@ -976,7 +878,7 @@ static PHP_MINIT_FUNCTION(buffer)
 #define DEFINE_ARRAY_BUFFER_VIEW_CLASS(class_name, type) \
 	INIT_CLASS_ENTRY(tmp_ce, #class_name, class_ ## class_name ## _methods); \
 	type##_array_ce = zend_register_internal_class_ex(&tmp_ce, typed_array_ce); \
-	type##_array_ce->ce_flags |= ZEND_ACC_FINAL;
+	type##_array_ce->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(Int8Array,   int8);
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(UInt8Array,  uint8);
@@ -1000,7 +902,6 @@ static PHP_MINIT_FUNCTION(buffer)
 	array_buffer_view_handlers.compare = array_buffer_view_compare;
 	array_buffer_view_handlers.get_debug_info  = array_buffer_view_get_debug_info;
 	array_buffer_view_handlers.free_obj        = array_buffer_view_free;
-	array_buffer_view_handlers.get_properties  = array_buffer_view_get_properties;
 
 	return SUCCESS;
 }

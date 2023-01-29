@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 852228d910d74d6d717940504935e7db1926e41d */
+ * Stub hash: 0e0a6442a403c547b1880a195cbf0505bd9b2a57 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, length, IS_LONG, 0)
@@ -25,9 +25,6 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_class_TypedArray___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, length, IS_LONG, 0, "0")
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_TypedArray___wakeup, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_TypedArray_offsetGet, 0, 1, MAY_BE_LONG|MAY_BE_DOUBLE)
 	ZEND_ARG_INFO(0, offset)
 ZEND_END_ARG_INFO()
@@ -45,9 +42,10 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_TypedArray_offsetUnset, 0,
 	ZEND_ARG_INFO(0, offset)
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_TypedArray_rewind arginfo_class_TypedArray___wakeup
+ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_TypedArray_rewind, 0, 0, IS_VOID, 0)
+ZEND_END_ARG_INFO()
 
-#define arginfo_class_TypedArray_next arginfo_class_TypedArray___wakeup
+#define arginfo_class_TypedArray_next arginfo_class_TypedArray_rewind
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_TypedArray_valid, 0, 0, _IS_BOOL, 0)
 ZEND_END_ARG_INFO()
@@ -102,7 +100,6 @@ ZEND_METHOD(ArrayBuffer, unserialize);
 ZEND_METHOD(ArrayBuffer, __serialize);
 ZEND_METHOD(ArrayBuffer, __unserialize);
 ZEND_METHOD(TypedArray, __construct);
-ZEND_METHOD(TypedArray, __wakeup);
 ZEND_METHOD(TypedArray, offsetGet);
 ZEND_METHOD(TypedArray, offsetSet);
 ZEND_METHOD(TypedArray, offsetExists);
@@ -128,7 +125,6 @@ static const zend_function_entry class_ArrayBuffer_methods[] = {
 
 static const zend_function_entry class_TypedArray_methods[] = {
 	ZEND_MALIAS(TypedArray, __construct, __construct, arginfo_class_TypedArray___construct, ZEND_ACC_PUBLIC)
-	ZEND_ME(TypedArray, __wakeup, arginfo_class_TypedArray___wakeup, ZEND_ACC_PUBLIC)
 	ZEND_ME(TypedArray, offsetGet, arginfo_class_TypedArray_offsetGet, ZEND_ACC_PUBLIC)
 	ZEND_ME(TypedArray, offsetSet, arginfo_class_TypedArray_offsetSet, ZEND_ACC_PUBLIC)
 	ZEND_ME(TypedArray, offsetExists, arginfo_class_TypedArray_offsetExists, ZEND_ACC_PUBLIC)

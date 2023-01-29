@@ -19,8 +19,6 @@ abstract class TypedArray implements ArrayAccess, Iterator {
     /** @implementation-alias TypedArray::__construct */
     public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
 
-    public function __wakeup(): void {}
-
     /**
      * @param int $offset
      */
