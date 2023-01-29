@@ -60,19 +60,13 @@ static zend_object_handlers array_buffer_view_handlers;
 static void array_buffer_free(zend_object *object)
 {
 	buffer_object *intern = php_buffer_fetch_object(object);
-
-	if (intern->buffer) {
-		efree(intern->buffer);
-	}
-
+	efree(intern->buffer);
 	zend_object_std_dtor(&intern->std);
 }
 
 static zend_object *array_buffer_create_object(zend_class_entry *class_type)
 {
 	buffer_object *intern = zend_object_alloc(sizeof(buffer_object), class_type);
-	intern->buffer = NULL;
-
 	zend_object_std_init(&intern->std, class_type);
 	intern->std.handlers = &array_buffer_handlers;
 
@@ -106,17 +100,17 @@ PHP_METHOD(ArrayBuffer, __construct)
 		Z_PARAM_LONG(length)
 	ZEND_PARSE_PARAMETERS_END();
 
-	if (length <= 0) {
-		zend_argument_value_error(1, "must be greater than 0");
+	if (length < 0) {
+		zend_argument_value_error(1, "must be greater than or equal to 0");
 		RETURN_THROWS();
 	}
 
-	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
-
-	intern->buffer = emalloc(length);
+	buffer_object *intern = Z_BUFFER_OBJ_P(ZEND_THIS);
 	intern->length = length;
-
-	memset(intern->buffer, 0, length);
+	if (length != 0) {
+		intern->buffer = emalloc(length);
+		memset(intern->buffer, 0, length);
+	}
 }
 
 PHP_METHOD(ArrayBuffer, __serialize)
@@ -147,15 +141,12 @@ PHP_METHOD(ArrayBuffer, __unserialize)
 		return;
 	}
 
-	if (Z_STRLEN_P(data) == 0) {
-		zend_throw_exception(NULL, "Could not unserialize buffer: empty string", 0);
-		return;
-	}
-
 	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
 	intern->length = Z_STRLEN_P(data);
-	intern->buffer = emalloc(intern->length);
-	memcpy(intern->buffer, Z_STRVAL_P(data), intern->length);
+	if (intern->length != 0) {
+		intern->buffer = emalloc(intern->length);
+		memcpy(intern->buffer, Z_STRVAL_P(data), intern->length);
+	}
 }
 
 static void array_buffer_view_free(zend_object *obj)
@@ -530,26 +521,27 @@ PHP_METHOD(TypedArray, __construct)
 {
 	zval *buffer_zval;
 	zend_long offset = 0, length = 0;
+	bool length_is_null = true;
 
 	ZEND_PARSE_PARAMETERS_START(1, 3)
 		Z_PARAM_OBJECT_OF_CLASS(buffer_zval, array_buffer_ce)
 		Z_PARAM_OPTIONAL
 		Z_PARAM_LONG(offset)
-		Z_PARAM_LONG(length)
+		Z_PARAM_LONG_OR_NULL(length, length_is_null)
 	ZEND_PARSE_PARAMETERS_END();
 
-	buffer_view_object *view_intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_object *view_intern = Z_BUFFER_VIEW_OBJ_P(ZEND_THIS);
 	buffer_object *buffer_intern = Z_BUFFER_OBJ_P(buffer_zval);
 
 	if (offset < 0) {
 		zend_argument_value_error(2, "must be greater than or equal to 0");
 		RETURN_THROWS();
 	}
-	if (offset >= buffer_intern->length) {
-		zend_argument_value_error(2, "must be smaller than the buffer length");
+	if (offset > buffer_intern->length) {
+		zend_argument_value_error(2, "must be smaller than or equal to the buffer length");
 		RETURN_THROWS();
 	}
-	if (length < 0) {
+	if (!length_is_null && length < 0) {
 		zend_argument_value_error(3, "must be greater than or equal to 0");
 		RETURN_THROWS();
 	}
@@ -561,10 +553,10 @@ PHP_METHOD(TypedArray, __construct)
 		size_t bytes_per_element = buffer_view_get_bytes_per_element(view_intern);
 		size_t max_length = (buffer_intern->length - offset) / bytes_per_element;
 
-		if (length == 0) {
+		if (length_is_null) {
 			view_intern->length = max_length;
 		} else if (length > max_length) {
-			zend_argument_value_error(3, "must be smaller than the buffer length");
+			zend_argument_value_error(3, "must be smaller than or equal to the buffer length");
 			RETURN_THROWS();
 		} else {
 			view_intern->length = length;

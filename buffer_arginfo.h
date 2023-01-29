@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 1297e6db028ebe9312e8b483cc29bba6323047be */
+ * Stub hash: f0ca1bf237e6c0a8b03dd584f7e74c5f14fa3e14 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, length, IS_LONG, 0)
@@ -15,7 +15,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_TypedArray___construct, 0, 0, 1)
 	ZEND_ARG_OBJ_INFO(0, buffer, ArrayBuffer, 0)
 	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, offset, IS_LONG, 0, "0")
-	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, length, IS_LONG, 0, "0")
+	ZEND_ARG_TYPE_INFO_WITH_DEFAULT_VALUE(0, length, IS_LONG, 1, "null")
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_TypedArray_offsetGet, 0, 1, MAY_BE_LONG|MAY_BE_DOUBLE)

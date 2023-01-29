@@ -6,7 +6,7 @@ Various error conditions
 <?php
 
 try {
-    new ArrayBuffer(0);
+    new ArrayBuffer(-1);
 } catch (ValueError $e) {
     echo $e->getMessage(), "\n";
 }
@@ -23,7 +23,7 @@ try {
     echo $e->getMessage(), "\n";
 }
 try {
-    new Int8Array($buffer, 8, 1);
+    new Int8Array($buffer, 9, 1);
 } catch (ValueError $e) {
     echo $e->getMessage(), "\n";
 }
@@ -35,8 +35,8 @@ try {
 
 ?>
 --EXPECT--
-ArrayBuffer::__construct(): Argument #1 ($length) must be greater than 0
+ArrayBuffer::__construct(): Argument #1 ($length) must be greater than or equal to 0
 TypedArray::__construct(): Argument #2 ($offset) must be greater than or equal to 0
 TypedArray::__construct(): Argument #3 ($length) must be greater than or equal to 0
-TypedArray::__construct(): Argument #2 ($offset) must be smaller than the buffer length
-TypedArray::__construct(): Argument #3 ($length) must be smaller than the buffer length
+TypedArray::__construct(): Argument #2 ($offset) must be smaller than or equal to the buffer length
+TypedArray::__construct(): Argument #3 ($length) must be smaller than or equal to the buffer length
