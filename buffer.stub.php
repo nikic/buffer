@@ -5,7 +5,7 @@
 
 /** @strict-properties */
 final class ArrayBuffer {
-    public function __construct(int $length) {}
+    public function __construct(int $byteLength) {}
 
     public function __serialize(): array {}
 
@@ -15,7 +15,7 @@ final class ArrayBuffer {
 /** @strict-properties */
 abstract class TypedArray implements ArrayAccess, Iterator {
     /** @implementation-alias TypedArray::__construct */
-    public function __construct(ArrayBuffer $buffer, int $offset = 0, ?int $length = null) {}
+    public function __construct(ArrayBuffer $buffer, int $byteOffset = 0, ?int $length = null) {}
 
     /**
      * @param int $offset

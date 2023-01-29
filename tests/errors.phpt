@@ -35,8 +35,8 @@ try {
 
 ?>
 --EXPECT--
-ArrayBuffer::__construct(): Argument #1 ($length) must be greater than or equal to 0
-TypedArray::__construct(): Argument #2 ($offset) must be greater than or equal to 0
+ArrayBuffer::__construct(): Argument #1 ($byteLength) must be greater than or equal to 0
+TypedArray::__construct(): Argument #2 ($byteOffset) must be greater than or equal to 0
 TypedArray::__construct(): Argument #3 ($length) must be greater than or equal to 0
-TypedArray::__construct(): Argument #2 ($offset) must be smaller than or equal to the buffer length
+TypedArray::__construct(): Argument #2 ($byteOffset) must be smaller than or equal to the buffer length
 TypedArray::__construct(): Argument #3 ($length) must be smaller than or equal to the buffer length
