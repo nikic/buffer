@@ -16,9 +16,15 @@ for($i=0; $i<10; $i++){
   $int32s[$i] = $i;
 }
 
-foreach($int32s as $k => $v){
+foreach ($int32s as $k => $v) {
   echo "$k, $v\n";
 }
+
+$it = $int32s->getIterator();
+while ($it->valid()) $it->next();
+var_dump($it->key());
+var_dump($it->current());
+
 ?>
 --EXPECT--
 0
@@ -41,3 +47,5 @@ foreach($int32s as $k => $v){
 7, 7
 8, 8
 9, 9
+int(10)
+NULL

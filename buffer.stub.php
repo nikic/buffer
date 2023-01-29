@@ -13,7 +13,7 @@ final class ArrayBuffer {
 }
 
 /** @strict-properties */
-abstract class TypedArray implements ArrayAccess, Iterator {
+abstract class TypedArray implements ArrayAccess, IteratorAggregate {
     /** @implementation-alias TypedArray::__construct */
     public function __construct(ArrayBuffer $buffer, int $byteOffset = 0, ?int $length = null) {}
 
@@ -38,15 +38,7 @@ abstract class TypedArray implements ArrayAccess, Iterator {
      */
     public function offsetUnset($offset): void {}
 
-    public function rewind(): void {}
-
-    public function next(): void {}
-
-    public function valid(): bool {}
-
-    public function key(): int {}
-
-    public function current(): int|float {}
+    public function getIterator(): Iterator {}
 
     public function __serialize(): array {}
 
@@ -59,9 +51,6 @@ final class Int8Array extends TypedArray {
      * @implementation-alias TypedArray::offsetGet
      */
     public function offsetGet($offset): int {}
-
-    /** @implementation-alias TypedArray::current */
-    public function current(): int {}
 }
 
 final class UInt8Array extends TypedArray {
@@ -70,9 +59,6 @@ final class UInt8Array extends TypedArray {
      * @implementation-alias TypedArray::offsetGet
      */
     public function offsetGet($offset): int {}
-
-    /** @implementation-alias TypedArray::current */
-    public function current(): int {}
 }
 
 final class Int16Array extends TypedArray {
@@ -81,9 +67,6 @@ final class Int16Array extends TypedArray {
      * @implementation-alias TypedArray::offsetGet
      */
     public function offsetGet($offset): int {}
-
-    /** @implementation-alias TypedArray::current */
-    public function current(): int {}
 }
 
 final class UInt16Array extends TypedArray {
@@ -92,9 +75,6 @@ final class UInt16Array extends TypedArray {
      * @implementation-alias TypedArray::offsetGet
      */
     public function offsetGet($offset): int {}
-
-    /** @implementation-alias TypedArray::current */
-    public function current(): int {}
 }
 
 final class Int32Array extends TypedArray {
@@ -103,9 +83,6 @@ final class Int32Array extends TypedArray {
      * @implementation-alias TypedArray::offsetGet
      */
     public function offsetGet($offset): int {}
-
-    /** @implementation-alias TypedArray::current */
-    public function current(): int {}
 }
 
 final class UInt32Array extends TypedArray {
@@ -117,9 +94,6 @@ final class FloatArray extends TypedArray {
      * @implementation-alias TypedArray::offsetGet
      */
     public function offsetGet($offset): float {}
-
-    /** @implementation-alias TypedArray::current */
-    public function current(): float {}
 }
 
 final class DoubleArray extends TypedArray {
@@ -128,7 +102,4 @@ final class DoubleArray extends TypedArray {
      * @implementation-alias TypedArray::offsetGet
      */
     public function offsetGet($offset): float {}
-
-    /** @implementation-alias TypedArray::current */
-    public function current(): float {}
 }

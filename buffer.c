@@ -166,7 +166,6 @@ static zend_object *array_buffer_view_create_object(zend_class_entry *class_type
 	ZVAL_UNDEF(&intern->buffer_zval);
 	intern->offset = 0;
 	intern->length = 0;
-	intern->current_offset = 0;
 
 	zend_object_std_init(&intern->std, class_type);
 	intern->std.handlers = &array_buffer_view_handlers;
@@ -472,7 +471,11 @@ static void buffer_view_iterator_move_forward(zend_object_iterator *intern)
 	buffer_view_iterator *iter = (buffer_view_iterator*) intern;
 
 	iter->offset++;
-	buffer_view_offset_get(iter->view, iter->offset, &iter->current);
+	if (iter->offset < iter->view->length) {
+		buffer_view_offset_get(iter->view, iter->offset, &iter->current);
+	} else {
+		ZVAL_NULL(&iter->current);
+	}
 }
 
 static void buffer_view_iterator_rewind(zend_object_iterator *intern)
@@ -631,44 +634,11 @@ PHP_METHOD(TypedArray, offsetUnset)
 	zend_throw_exception(NULL, "Cannot unset offsets in a typed array", 0);
 }
 
-PHP_METHOD(TypedArray, rewind)
+PHP_METHOD(TypedArray, getIterator)
 {
 	ZEND_PARSE_PARAMETERS_NONE();
 
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
-	intern->current_offset = 0;
-}
-
-PHP_METHOD(TypedArray, next)
-{
-	ZEND_PARSE_PARAMETERS_NONE();
-
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
-	intern->current_offset++;
-}
-
-PHP_METHOD(TypedArray, valid)
-{
-	ZEND_PARSE_PARAMETERS_NONE();
-
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
-	RETURN_BOOL(intern->current_offset < intern->length);
-}
-
-PHP_METHOD(TypedArray, key)
-{
-	ZEND_PARSE_PARAMETERS_NONE();
-
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
-	RETURN_LONG((long) intern->current_offset);
-}
-
-PHP_METHOD(TypedArray, current)
-{
-	ZEND_PARSE_PARAMETERS_NONE();
-
-	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
-	buffer_view_offset_get(intern, intern->current_offset, return_value);
+	zend_create_internal_iterator_zval(return_value, ZEND_THIS);
 }
 
 PHP_METHOD(TypedArray, __serialize)
@@ -743,7 +713,7 @@ static PHP_MINIT_FUNCTION(buffer)
 	array_buffer_handlers.free_obj  = array_buffer_free;
 	array_buffer_handlers.clone_obj = array_buffer_clone;
 
-	typed_array_ce = register_class_TypedArray(zend_ce_arrayaccess, zend_ce_iterator);
+	typed_array_ce = register_class_TypedArray(zend_ce_arrayaccess, zend_ce_aggregate);
 	typed_array_ce->create_object = array_buffer_view_create_object;
 	typed_array_ce->get_iterator = buffer_view_get_iterator;
 

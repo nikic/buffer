@@ -57,9 +57,6 @@ typedef struct _buffer_view_object {
 	size_t offset;
 	size_t length;
 
-	/* For Iterator methods */
-	size_t current_offset;
-
 	buffer_view_type type;
 
 	zend_object std;

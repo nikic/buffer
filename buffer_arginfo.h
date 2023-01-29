@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 51c8b636a7e3102c046c0aeeae35d5a3c6deecc5 */
+ * Stub hash: 27ace0a062e7121921c7d91c42538d25fbea09ce */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, byteLength, IS_LONG, 0)
@@ -35,18 +35,7 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_TypedArray_offsetUnset, 0,
 	ZEND_ARG_INFO(0, offset)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_TypedArray_rewind, 0, 0, IS_VOID, 0)
-ZEND_END_ARG_INFO()
-
-#define arginfo_class_TypedArray_next arginfo_class_TypedArray_rewind
-
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_TypedArray_valid, 0, 0, _IS_BOOL, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_TypedArray_key, 0, 0, IS_LONG, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(arginfo_class_TypedArray_current, 0, 0, MAY_BE_LONG|MAY_BE_DOUBLE)
+ZEND_BEGIN_ARG_WITH_RETURN_OBJ_INFO_EX(arginfo_class_TypedArray_getIterator, 0, 0, Iterator, 0)
 ZEND_END_ARG_INFO()
 
 #define arginfo_class_TypedArray___serialize arginfo_class_ArrayBuffer___serialize
@@ -57,34 +46,19 @@ ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_Int8Array_offsetGet, 0, 1,
 	ZEND_ARG_INFO(0, offset)
 ZEND_END_ARG_INFO()
 
-#define arginfo_class_Int8Array_current arginfo_class_TypedArray_key
-
 #define arginfo_class_UInt8Array_offsetGet arginfo_class_Int8Array_offsetGet
-
-#define arginfo_class_UInt8Array_current arginfo_class_TypedArray_key
 
 #define arginfo_class_Int16Array_offsetGet arginfo_class_Int8Array_offsetGet
 
-#define arginfo_class_Int16Array_current arginfo_class_TypedArray_key
-
 #define arginfo_class_UInt16Array_offsetGet arginfo_class_Int8Array_offsetGet
 
-#define arginfo_class_UInt16Array_current arginfo_class_TypedArray_key
-
 #define arginfo_class_Int32Array_offsetGet arginfo_class_Int8Array_offsetGet
-
-#define arginfo_class_Int32Array_current arginfo_class_TypedArray_key
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_FloatArray_offsetGet, 0, 1, IS_DOUBLE, 0)
 	ZEND_ARG_INFO(0, offset)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_FloatArray_current, 0, 0, IS_DOUBLE, 0)
-ZEND_END_ARG_INFO()
-
 #define arginfo_class_DoubleArray_offsetGet arginfo_class_FloatArray_offsetGet
-
-#define arginfo_class_DoubleArray_current arginfo_class_FloatArray_current
 
 
 ZEND_METHOD(ArrayBuffer, __construct);
@@ -95,11 +69,7 @@ ZEND_METHOD(TypedArray, offsetGet);
 ZEND_METHOD(TypedArray, offsetSet);
 ZEND_METHOD(TypedArray, offsetExists);
 ZEND_METHOD(TypedArray, offsetUnset);
-ZEND_METHOD(TypedArray, rewind);
-ZEND_METHOD(TypedArray, next);
-ZEND_METHOD(TypedArray, valid);
-ZEND_METHOD(TypedArray, key);
-ZEND_METHOD(TypedArray, current);
+ZEND_METHOD(TypedArray, getIterator);
 ZEND_METHOD(TypedArray, __serialize);
 ZEND_METHOD(TypedArray, __unserialize);
 
@@ -118,11 +88,7 @@ static const zend_function_entry class_TypedArray_methods[] = {
 	ZEND_ME(TypedArray, offsetSet, arginfo_class_TypedArray_offsetSet, ZEND_ACC_PUBLIC)
 	ZEND_ME(TypedArray, offsetExists, arginfo_class_TypedArray_offsetExists, ZEND_ACC_PUBLIC)
 	ZEND_ME(TypedArray, offsetUnset, arginfo_class_TypedArray_offsetUnset, ZEND_ACC_PUBLIC)
-	ZEND_ME(TypedArray, rewind, arginfo_class_TypedArray_rewind, ZEND_ACC_PUBLIC)
-	ZEND_ME(TypedArray, next, arginfo_class_TypedArray_next, ZEND_ACC_PUBLIC)
-	ZEND_ME(TypedArray, valid, arginfo_class_TypedArray_valid, ZEND_ACC_PUBLIC)
-	ZEND_ME(TypedArray, key, arginfo_class_TypedArray_key, ZEND_ACC_PUBLIC)
-	ZEND_ME(TypedArray, current, arginfo_class_TypedArray_current, ZEND_ACC_PUBLIC)
+	ZEND_ME(TypedArray, getIterator, arginfo_class_TypedArray_getIterator, ZEND_ACC_PUBLIC)
 	ZEND_ME(TypedArray, __serialize, arginfo_class_TypedArray___serialize, ZEND_ACC_PUBLIC)
 	ZEND_ME(TypedArray, __unserialize, arginfo_class_TypedArray___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
@@ -131,35 +97,30 @@ static const zend_function_entry class_TypedArray_methods[] = {
 
 static const zend_function_entry class_Int8Array_methods[] = {
 	ZEND_MALIAS(TypedArray, offsetGet, offsetGet, arginfo_class_Int8Array_offsetGet, ZEND_ACC_PUBLIC)
-	ZEND_MALIAS(TypedArray, current, current, arginfo_class_Int8Array_current, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
 
 static const zend_function_entry class_UInt8Array_methods[] = {
 	ZEND_MALIAS(TypedArray, offsetGet, offsetGet, arginfo_class_UInt8Array_offsetGet, ZEND_ACC_PUBLIC)
-	ZEND_MALIAS(TypedArray, current, current, arginfo_class_UInt8Array_current, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
 
 static const zend_function_entry class_Int16Array_methods[] = {
 	ZEND_MALIAS(TypedArray, offsetGet, offsetGet, arginfo_class_Int16Array_offsetGet, ZEND_ACC_PUBLIC)
-	ZEND_MALIAS(TypedArray, current, current, arginfo_class_Int16Array_current, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
 
 static const zend_function_entry class_UInt16Array_methods[] = {
 	ZEND_MALIAS(TypedArray, offsetGet, offsetGet, arginfo_class_UInt16Array_offsetGet, ZEND_ACC_PUBLIC)
-	ZEND_MALIAS(TypedArray, current, current, arginfo_class_UInt16Array_current, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
 
 static const zend_function_entry class_Int32Array_methods[] = {
 	ZEND_MALIAS(TypedArray, offsetGet, offsetGet, arginfo_class_Int32Array_offsetGet, ZEND_ACC_PUBLIC)
-	ZEND_MALIAS(TypedArray, current, current, arginfo_class_Int32Array_current, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -171,14 +132,12 @@ static const zend_function_entry class_UInt32Array_methods[] = {
 
 static const zend_function_entry class_FloatArray_methods[] = {
 	ZEND_MALIAS(TypedArray, offsetGet, offsetGet, arginfo_class_FloatArray_offsetGet, ZEND_ACC_PUBLIC)
-	ZEND_MALIAS(TypedArray, current, current, arginfo_class_FloatArray_current, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
 
 static const zend_function_entry class_DoubleArray_methods[] = {
 	ZEND_MALIAS(TypedArray, offsetGet, offsetGet, arginfo_class_DoubleArray_offsetGet, ZEND_ACC_PUBLIC)
-	ZEND_MALIAS(TypedArray, current, current, arginfo_class_DoubleArray_current, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
 
@@ -193,14 +152,14 @@ static zend_class_entry *register_class_ArrayBuffer(void)
 	return class_entry;
 }
 
-static zend_class_entry *register_class_TypedArray(zend_class_entry *class_entry_ArrayAccess, zend_class_entry *class_entry_Iterator)
+static zend_class_entry *register_class_TypedArray(zend_class_entry *class_entry_ArrayAccess, zend_class_entry *class_entry_IteratorAggregate)
 {
 	zend_class_entry ce, *class_entry;
 
 	INIT_CLASS_ENTRY(ce, "TypedArray", class_TypedArray_methods);
 	class_entry = zend_register_internal_class_ex(&ce, NULL);
 	class_entry->ce_flags |= ZEND_ACC_ABSTRACT|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
-	zend_class_implements(class_entry, 2, class_entry_ArrayAccess, class_entry_Iterator);
+	zend_class_implements(class_entry, 2, class_entry_ArrayAccess, class_entry_IteratorAggregate);
 
 	return class_entry;
 }
