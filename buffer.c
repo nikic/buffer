@@ -16,8 +16,6 @@
   +----------------------------------------------------------------------+
 */
 
-/* $Id$ */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -44,20 +42,20 @@ ZEND_GET_MODULE(buffer)
 #endif
 
 
-zend_class_entry *array_buffer_ce;
-zend_class_entry *typed_array_ce;
+static zend_class_entry *array_buffer_ce;
+static zend_class_entry *typed_array_ce;
 
-zend_class_entry *int8_array_ce;
-zend_class_entry *uint8_array_ce;
-zend_class_entry *int16_array_ce;
-zend_class_entry *uint16_array_ce;
-zend_class_entry *int32_array_ce;
-zend_class_entry *uint32_array_ce;
-zend_class_entry *float_array_ce;
-zend_class_entry *double_array_ce;
+static zend_class_entry *int8_array_ce;
+static zend_class_entry *uint8_array_ce;
+static zend_class_entry *int16_array_ce;
+static zend_class_entry *uint16_array_ce;
+static zend_class_entry *int32_array_ce;
+static zend_class_entry *uint32_array_ce;
+static zend_class_entry *float_array_ce;
+static zend_class_entry *double_array_ce;
 
-zend_object_handlers array_buffer_handlers;
-zend_object_handlers array_buffer_view_handlers;
+static zend_object_handlers array_buffer_handlers;
+static zend_object_handlers array_buffer_view_handlers;
 
 static void array_buffer_free(zend_object *object)
 {
@@ -70,7 +68,7 @@ static void array_buffer_free(zend_object *object)
 	zend_object_std_dtor(&intern->std);
 }
 
-zend_object *array_buffer_create_object(zend_class_entry *class_type)
+static zend_object *array_buffer_create_object(zend_class_entry *class_type)
 {
 	buffer_object *intern = zend_object_alloc(sizeof(buffer_object), class_type);
 	intern->buffer = NULL;
@@ -80,7 +78,6 @@ zend_object *array_buffer_create_object(zend_class_entry *class_type)
 
 	return &intern->std;
 }
-
 
 static zend_object *array_buffer_clone(zend_object *object)
 {
@@ -254,7 +251,7 @@ static void array_buffer_view_free(zend_object *obj)
 	}
 }
 
-zend_object *array_buffer_view_create_object(zend_class_entry *class_type)
+static zend_object *array_buffer_view_create_object(zend_class_entry *class_type)
 {
 	buffer_view_object *intern = zend_object_alloc(sizeof(buffer_view_object), class_type);
 	ZVAL_UNDEF(&intern->buffer_zval);
@@ -310,7 +307,7 @@ static zend_object *array_buffer_view_clone(zend_object *object)
 	return &new_object->std;
 }
 
-size_t buffer_view_get_bytes_per_element(buffer_view_object *intern)
+static size_t buffer_view_get_bytes_per_element(buffer_view_object *intern)
 {
 	switch (intern->type)
 	{
@@ -332,7 +329,7 @@ size_t buffer_view_get_bytes_per_element(buffer_view_object *intern)
 	}
 }
 
-void buffer_view_offset_get(buffer_view_object *intern, size_t offset, zval *retval)
+static void buffer_view_offset_get(buffer_view_object *intern, size_t offset, zval *retval)
 {
 	switch (intern->type) {
 		case buffer_view_int8:
