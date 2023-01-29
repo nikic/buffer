@@ -119,82 +119,6 @@ PHP_METHOD(ArrayBuffer, __construct)
 	memset(intern->buffer, 0, length);
 }
 
-PHP_METHOD(ArrayBuffer, serialize)
-{
-	smart_str buf = {0};
-	php_serialize_data_t var_hash;
-	zval zv;
-
-	ZEND_PARSE_PARAMETERS_NONE();
-
-	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
-	if (!intern->buffer) {
-		return;
-	}
-
-	PHP_VAR_SERIALIZE_INIT(var_hash);
-
-	/* Serialize buffer as string */
-	zend_string *zstr = zend_string_init((char*) intern->buffer, intern->length, 0);
-	ZVAL_STR(&zv, zstr);
-	php_var_serialize(&buf, &zv, &var_hash);
-	zend_string_release(zstr);
-
-	PHP_VAR_SERIALIZE_DESTROY(var_hash);
-	RETURN_NEW_STR(buf.s);
-}
-
-PHP_METHOD(ArrayBuffer, unserialize)
-{
-	char *str;
-	size_t str_len;
-	php_unserialize_data_t var_hash;
-	const unsigned char *p, *max;
-	zval *zbuf;
-	zend_string *zstr;
-
-	ZEND_PARSE_PARAMETERS_START(1, 1)
-		Z_PARAM_STRING(str, str_len)
-	ZEND_PARSE_PARAMETERS_END();
-
-	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
-
-	if (intern->buffer) {
-		zend_throw_exception(
-			NULL, "Cannot call unserialize() on an already constructed object", 0
-		);
-		return;
-	}
-
-	PHP_VAR_UNSERIALIZE_INIT(var_hash);
-
-	p = (unsigned char*) str;
-	max = (unsigned char*) str + str_len;
-
-	zbuf = var_tmp_var(&var_hash);
-	if (!php_var_unserialize(zbuf, &p, max, &var_hash)) {
-		zend_throw_exception(NULL, "Could not unserialize buffer: no data", 0);
-		goto exit;
-	}
-	if (Z_TYPE_P(zbuf) != IS_STRING) {
-		zend_throw_exception(NULL, "Could not unserialize buffer: not a string", 0);
-		goto exit;
-	}
-
-	zstr = Z_STR_P(zbuf);
-	intern->length = ZSTR_LEN(zstr);
-	if (intern->length == 0) {
-		zend_throw_exception(NULL, "Could not unserialize buffer: empty string", 0);
-		goto exit;
-	}
-	intern->buffer = emalloc(intern->length);
-	memcpy(intern->buffer, ZSTR_VAL(zstr), intern->length);
-	zend_string_release(zstr);
-
-exit:
-	PHP_VAR_UNSERIALIZE_DESTROY(var_hash);
-}
-
 PHP_METHOD(ArrayBuffer, __serialize)
 {
 	ZEND_PARSE_PARAMETERS_NONE();
@@ -820,7 +744,7 @@ PHP_METHOD(TypedArray, __unserialize)
 
 static PHP_MINIT_FUNCTION(buffer)
 {
-	array_buffer_ce = register_class_ArrayBuffer(zend_ce_serializable);
+	array_buffer_ce = register_class_ArrayBuffer();
 	array_buffer_ce->create_object = array_buffer_create_object;
 	memcpy(&array_buffer_handlers, zend_get_std_object_handlers(), sizeof(array_buffer_handlers));
 	array_buffer_handlers.offset = XtOffsetOf(buffer_object, std);

@@ -1,15 +1,8 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 93c8101437a34655c652ae6ae1180d2267a05cfe */
+ * Stub hash: 1297e6db028ebe9312e8b483cc29bba6323047be */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, length, IS_LONG, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_ArrayBuffer_serialize, 0, 0, IS_STRING, 0)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_ArrayBuffer_unserialize, 0, 1, IS_VOID, 0)
-	ZEND_ARG_TYPE_INFO(0, data, IS_STRING, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_class_ArrayBuffer___serialize, 0, 0, IS_ARRAY, 0)
@@ -95,8 +88,6 @@ ZEND_END_ARG_INFO()
 
 
 ZEND_METHOD(ArrayBuffer, __construct);
-ZEND_METHOD(ArrayBuffer, serialize);
-ZEND_METHOD(ArrayBuffer, unserialize);
 ZEND_METHOD(ArrayBuffer, __serialize);
 ZEND_METHOD(ArrayBuffer, __unserialize);
 ZEND_METHOD(TypedArray, __construct);
@@ -115,8 +106,6 @@ ZEND_METHOD(TypedArray, __unserialize);
 
 static const zend_function_entry class_ArrayBuffer_methods[] = {
 	ZEND_ME(ArrayBuffer, __construct, arginfo_class_ArrayBuffer___construct, ZEND_ACC_PUBLIC)
-	ZEND_ME(ArrayBuffer, serialize, arginfo_class_ArrayBuffer_serialize, ZEND_ACC_PUBLIC)
-	ZEND_ME(ArrayBuffer, unserialize, arginfo_class_ArrayBuffer_unserialize, ZEND_ACC_PUBLIC)
 	ZEND_ME(ArrayBuffer, __serialize, arginfo_class_ArrayBuffer___serialize, ZEND_ACC_PUBLIC)
 	ZEND_ME(ArrayBuffer, __unserialize, arginfo_class_ArrayBuffer___unserialize, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
@@ -193,14 +182,13 @@ static const zend_function_entry class_DoubleArray_methods[] = {
 	ZEND_FE_END
 };
 
-static zend_class_entry *register_class_ArrayBuffer(zend_class_entry *class_entry_Serializable)
+static zend_class_entry *register_class_ArrayBuffer(void)
 {
 	zend_class_entry ce, *class_entry;
 
 	INIT_CLASS_ENTRY(ce, "ArrayBuffer", class_ArrayBuffer_methods);
 	class_entry = zend_register_internal_class_ex(&ce, NULL);
 	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
-	zend_class_implements(class_entry, 1, class_entry_Serializable);
 
 	return class_entry;
 }

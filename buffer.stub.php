@@ -4,12 +4,8 @@
  */
 
 /** @strict-properties */
-final class ArrayBuffer implements Serializable {
+final class ArrayBuffer {
     public function __construct(int $length) {}
-
-    public function serialize(): string {}
-
-    public function unserialize(string $data): void {}
 
     public function __serialize(): array {}
 
