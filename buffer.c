@@ -107,8 +107,8 @@ PHP_METHOD(ArrayBuffer, __construct)
 	ZEND_PARSE_PARAMETERS_END();
 
 	if (length <= 0) {
-		zend_throw_exception(NULL, "Buffer length must be positive", 0);
-		return;
+		zend_argument_value_error(1, "must be greater than 0");
+		RETURN_THROWS();
 	}
 
 	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
@@ -542,16 +542,16 @@ PHP_METHOD(TypedArray, __construct)
 	buffer_object *buffer_intern = Z_BUFFER_OBJ_P(buffer_zval);
 
 	if (offset < 0) {
-		zend_throw_exception(NULL, "Offset must be non-negative", 0);
-		return;
+		zend_argument_value_error(2, "must be greater than or equal to 0");
+		RETURN_THROWS();
 	}
 	if (offset >= buffer_intern->length) {
-		zend_throw_exception(NULL, "Offset has to be smaller than the buffer length", 0);
-		return;
+		zend_argument_value_error(2, "must be smaller than the buffer length");
+		RETURN_THROWS();
 	}
 	if (length < 0) {
-		zend_throw_exception(NULL, "Length must be positive or zero", 0);
-		return;
+		zend_argument_value_error(3, "must be greater than or equal to 0");
+		RETURN_THROWS();
 	}
 
 	view_intern->offset = offset;
@@ -564,8 +564,8 @@ PHP_METHOD(TypedArray, __construct)
 		if (length == 0) {
 			view_intern->length = max_length;
 		} else if (length > max_length) {
-			zend_throw_exception(NULL, "Length is larger than the buffer", 0);
-			return;
+			zend_argument_value_error(3, "must be smaller than the buffer length");
+			RETURN_THROWS();
 		} else {
 			view_intern->length = length;
 		}
