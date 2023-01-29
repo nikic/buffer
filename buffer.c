@@ -854,31 +854,19 @@ PHP_METHOD(TypedArray, __unserialize)
 
 static PHP_MINIT_FUNCTION(buffer)
 {
-	zend_class_entry tmp_ce;
-
-	INIT_CLASS_ENTRY(tmp_ce, "ArrayBuffer", class_ArrayBuffer_methods);
-	array_buffer_ce = zend_register_internal_class(&tmp_ce);
-	array_buffer_ce->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
+	array_buffer_ce = register_class_ArrayBuffer(zend_ce_serializable);
 	array_buffer_ce->create_object = array_buffer_create_object;
 	memcpy(&array_buffer_handlers, zend_get_std_object_handlers(), sizeof(array_buffer_handlers));
 	array_buffer_handlers.offset = XtOffsetOf(buffer_object, std);
-        array_buffer_handlers.dtor_obj  = zend_objects_destroy_object;
 	array_buffer_handlers.free_obj  = array_buffer_free;
 	array_buffer_handlers.clone_obj = array_buffer_clone;
 
-	zend_class_implements(array_buffer_ce, 1, zend_ce_serializable);
-
-	INIT_CLASS_ENTRY(tmp_ce, "TypedArray", class_TypedArray_methods);
-	typed_array_ce = zend_register_internal_class(&tmp_ce);
-	typed_array_ce->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;
+	typed_array_ce = register_class_TypedArray(zend_ce_arrayaccess, zend_ce_iterator);
 	typed_array_ce->create_object = array_buffer_view_create_object;
 	typed_array_ce->get_iterator = buffer_view_get_iterator;
-	zend_class_implements(typed_array_ce, 2, zend_ce_arrayaccess, zend_ce_iterator);
 
 #define DEFINE_ARRAY_BUFFER_VIEW_CLASS(class_name, type) \
-	INIT_CLASS_ENTRY(tmp_ce, #class_name, class_ ## class_name ## _methods); \
-	type##_array_ce = zend_register_internal_class_ex(&tmp_ce, typed_array_ce); \
-	type##_array_ce->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
+	type##_array_ce = register_class_##class_name(typed_array_ce); \
 
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(Int8Array,   int8);
 	DEFINE_ARRAY_BUFFER_VIEW_CLASS(UInt8Array,  uint8);
@@ -893,7 +881,6 @@ static PHP_MINIT_FUNCTION(buffer)
 
 	memcpy(&array_buffer_view_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	array_buffer_view_handlers.offset = XtOffsetOf(buffer_view_object, std);
-        array_buffer_view_handlers.dtor_obj        = zend_objects_destroy_object;
 	array_buffer_view_handlers.clone_obj       = array_buffer_view_clone;
 	array_buffer_view_handlers.read_dimension  = array_buffer_view_read_dimension;
 	array_buffer_view_handlers.write_dimension = array_buffer_view_write_dimension;

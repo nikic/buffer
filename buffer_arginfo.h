@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 0e0a6442a403c547b1880a195cbf0505bd9b2a57 */
+ * Stub hash: 93c8101437a34655c652ae6ae1180d2267a05cfe */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_ArrayBuffer___construct, 0, 0, 1)
 	ZEND_ARG_TYPE_INFO(0, length, IS_LONG, 0)
@@ -192,3 +192,115 @@ static const zend_function_entry class_DoubleArray_methods[] = {
 	ZEND_MALIAS(TypedArray, current, current, arginfo_class_DoubleArray_current, ZEND_ACC_PUBLIC)
 	ZEND_FE_END
 };
+
+static zend_class_entry *register_class_ArrayBuffer(zend_class_entry *class_entry_Serializable)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "ArrayBuffer", class_ArrayBuffer_methods);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
+	zend_class_implements(class_entry, 1, class_entry_Serializable);
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_TypedArray(zend_class_entry *class_entry_ArrayAccess, zend_class_entry *class_entry_Iterator)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "TypedArray", class_TypedArray_methods);
+	class_entry = zend_register_internal_class_ex(&ce, NULL);
+	class_entry->ce_flags |= ZEND_ACC_ABSTRACT|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
+	zend_class_implements(class_entry, 2, class_entry_ArrayAccess, class_entry_Iterator);
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_Int8Array(zend_class_entry *class_entry_TypedArray)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "Int8Array", class_Int8Array_methods);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_TypedArray);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_UInt8Array(zend_class_entry *class_entry_TypedArray)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "UInt8Array", class_UInt8Array_methods);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_TypedArray);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_Int16Array(zend_class_entry *class_entry_TypedArray)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "Int16Array", class_Int16Array_methods);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_TypedArray);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_UInt16Array(zend_class_entry *class_entry_TypedArray)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "UInt16Array", class_UInt16Array_methods);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_TypedArray);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_Int32Array(zend_class_entry *class_entry_TypedArray)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "Int32Array", class_Int32Array_methods);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_TypedArray);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_UInt32Array(zend_class_entry *class_entry_TypedArray)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "UInt32Array", class_UInt32Array_methods);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_TypedArray);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_FloatArray(zend_class_entry *class_entry_TypedArray)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "FloatArray", class_FloatArray_methods);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_TypedArray);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
+
+	return class_entry;
+}
+
+static zend_class_entry *register_class_DoubleArray(zend_class_entry *class_entry_TypedArray)
+{
+	zend_class_entry ce, *class_entry;
+
+	INIT_CLASS_ENTRY(ce, "DoubleArray", class_DoubleArray_methods);
+	class_entry = zend_register_internal_class_ex(&ce, class_entry_TypedArray);
+	class_entry->ce_flags |= ZEND_ACC_FINAL;
+
+	return class_entry;
+}

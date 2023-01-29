@@ -1,8 +1,9 @@
 <?php
 /**
- * @generate-function-entries
+ * @generate-class-entries
  */
 
+/** @strict-properties */
 final class ArrayBuffer implements Serializable {
     public function __construct(int $length) {}
 
@@ -15,6 +16,7 @@ final class ArrayBuffer implements Serializable {
     public function __unserialize(array $data): void {}
 }
 
+/** @strict-properties */
 abstract class TypedArray implements ArrayAccess, Iterator {
     /** @implementation-alias TypedArray::__construct */
     public function __construct(ArrayBuffer $buffer, int $offset = 0, int $length = 0) {}
