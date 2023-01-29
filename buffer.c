@@ -37,35 +37,7 @@
 
 #include <stdint.h>
 
-#if PHP_VERSION_ID >= 80000
-# include "buffer_arginfo.h"
-#else
-# include "buffer_legacy_arginfo.h"
-#endif
-
-#if PHP_VERSION_ID >= 80000
-typedef zend_object zval_or_zend_object;
-# define BUFFER_FROM_ZVAL_OR_OBJ(z) php_buffer_fetch_object(z)
-# define BUFFER_VIEW_FROM_ZVAL_OR_OBJ(z) php_buffer_view_fetch_object(z)
-# define THIS_ZVAL_OR_OBJ Z_OBJ_P(ZEND_THIS)
-#else
-typedef zval zval_or_zend_object;
-# define BUFFER_FROM_ZVAL_OR_OBJ(z) Z_BUFFER_OBJ_P(z)
-# define BUFFER_VIEW_FROM_ZVAL_OR_OBJ(z) Z_BUFFER_VIEW_OBJ_P(z)
-# define THIS_ZVAL_OR_OBJ getThis()
-#endif
-
-#if PHP_VERSION_ID < 70300
-static zend_always_inline void *zend_object_alloc(size_t obj_size, zend_class_entry *ce) {
-	void *obj = emalloc(obj_size + zend_object_properties_size(ce));
-	memset(obj, 0, obj_size - sizeof(zend_object));
-	return obj;
-}
-#endif
-
-#ifndef ZEND_ACC_NO_DYNAMIC_PROPERTIES
-# define ZEND_ACC_NO_DYNAMIC_PROPERTIES 0
-#endif
+#include "buffer_arginfo.h"
 
 #ifdef COMPILE_DL_BUFFER
 ZEND_GET_MODULE(buffer)
@@ -110,9 +82,9 @@ zend_object *array_buffer_create_object(zend_class_entry *class_type)
 }
 
 
-static zend_object *array_buffer_clone(zval_or_zend_object *object)
+static zend_object *array_buffer_clone(zend_object *object)
 {
-	buffer_object *old_object = BUFFER_FROM_ZVAL_OR_OBJ(object);
+	buffer_object *old_object = php_buffer_fetch_object(object);
 	zend_object *znew_object = array_buffer_create_object(old_object->std.ce);
 	buffer_object *new_object = php_buffer_fetch_object(znew_object);
 
@@ -316,9 +288,9 @@ zend_object *array_buffer_view_create_object(zend_class_entry *class_type)
 	return &intern->std;
 }
 
-static zend_object *array_buffer_view_clone(zval_or_zend_object *object)
+static zend_object *array_buffer_view_clone(zend_object *object)
 {
-	buffer_view_object *old_object = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
+	buffer_view_object *old_object = php_buffer_view_fetch_object(object);
 	zend_object *znew_object = array_buffer_view_create_object(
 		old_object->std.ce);
 	buffer_view_object *new_object = php_buffer_view_fetch_object(znew_object);
@@ -430,9 +402,9 @@ void buffer_view_offset_set(buffer_view_object *intern, zend_long offset, zval *
 }
 
 static zval *array_buffer_view_read_dimension(
-		zval_or_zend_object *object, zval *zv_offset, int type, zval *retval)
+		zend_object *object, zval *zv_offset, int type, zval *retval)
 {
-	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
+	buffer_view_object *intern = php_buffer_view_fetch_object(object);
 	zend_long offset;
 
 	if (intern->std.ce->parent) {
@@ -455,9 +427,9 @@ static zval *array_buffer_view_read_dimension(
 }
 
 static void array_buffer_view_write_dimension(
-		zval_or_zend_object *object, zval *zv_offset, zval *value)
+		zend_object *object, zval *zv_offset, zval *value)
 {
-	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
+	buffer_view_object *intern = php_buffer_view_fetch_object(object);
 	zend_long offset;
 	
 	if (intern->std.ce->parent) {
@@ -480,9 +452,9 @@ static void array_buffer_view_write_dimension(
 }
 
 static int array_buffer_view_has_dimension(
-		zval_or_zend_object *object, zval *zv_offset, int check_empty)
+		zend_object *object, zval *zv_offset, int check_empty)
 {
-	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
+	buffer_view_object *intern = php_buffer_view_fetch_object(object);
 	zend_long offset = zval_get_long(zv_offset);
  
 	if (intern->std.ce->parent) {
@@ -502,9 +474,9 @@ static int array_buffer_view_has_dimension(
 	return 1;
 }
 
-static void array_buffer_view_unset_dimension(zval_or_zend_object *object, zval *zv_offset)
+static void array_buffer_view_unset_dimension(zend_object *object, zval *zv_offset)
 {
-	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(object);
+	buffer_view_object *intern = php_buffer_view_fetch_object(object);
 
 	if (intern->std.ce->parent) {
 		zend_get_std_object_handlers()->unset_dimension(object, zv_offset);
@@ -514,11 +486,9 @@ static void array_buffer_view_unset_dimension(zval_or_zend_object *object, zval 
 	zend_throw_exception(NULL, "Cannot unset offsets in a typed array", 0);
 }
 
-static int array_buffer_view_compare_objects(zval *obj1, zval *obj2)
+static int array_buffer_view_compare(zval *obj1, zval *obj2)
 {
-#if PHP_VERSION_ID >= 80000
 	ZEND_COMPARE_OBJECTS_FALLBACK(obj1, obj2);
-#endif
 
 	buffer_view_object *intern1 = Z_BUFFER_VIEW_OBJ_P(obj1);
 	buffer_view_object *intern2 = Z_BUFFER_VIEW_OBJ_P(obj2);
@@ -542,9 +512,9 @@ static int array_buffer_view_compare_objects(zval *obj1, zval *obj2)
 }
 
 /* TODO: We really shouldn't be doing this, but then we can't use __wakeup */
-static HashTable *array_buffer_view_get_properties(zval_or_zend_object *obj)
+static HashTable *array_buffer_view_get_properties(zend_object *obj)
 {
-	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(obj);
+	buffer_view_object *intern = php_buffer_view_fetch_object(obj);
 	HashTable *ht = zend_std_get_properties(obj);
 	zend_string *key;
 	zval zv;
@@ -576,9 +546,9 @@ static HashTable *array_buffer_view_get_properties(zval_or_zend_object *obj)
 	return ht;
 }
 
-static HashTable *array_buffer_view_get_debug_info(zval_or_zend_object *obj, int *is_temp)
+static HashTable *array_buffer_view_get_debug_info(zend_object *obj, int *is_temp)
 {
-	buffer_view_object *intern = BUFFER_VIEW_FROM_ZVAL_OR_OBJ(obj);
+	buffer_view_object *intern = php_buffer_view_fetch_object(obj);
 	HashTable *props = array_buffer_view_get_properties(obj);
 	HashTable *ht;
 	int i;
@@ -648,9 +618,7 @@ const zend_object_iterator_funcs buffer_view_iterator_funcs = {
 	buffer_view_iterator_move_forward,
 	buffer_view_iterator_rewind,
 	NULL,
-#if PHP_VERSION_ID >= 80000
 	NULL,
-#endif
 };
 
 zend_object_iterator *buffer_view_get_iterator(zend_class_entry *ce, zval *object, int by_ref)
@@ -744,7 +712,7 @@ PHP_METHOD(TypedArray, __wakeup)
 		return;
 	}
 
-	props = zend_std_get_properties(THIS_ZVAL_OR_OBJ);
+	props = zend_std_get_properties(&intern->std);
 
 	key = zend_string_init("buffer", sizeof("buffer")-1, 0);
 	buffer_zv = zend_hash_find(props, key);
@@ -1029,11 +997,7 @@ static PHP_MINIT_FUNCTION(buffer)
 	array_buffer_view_handlers.write_dimension = array_buffer_view_write_dimension;
 	array_buffer_view_handlers.has_dimension   = array_buffer_view_has_dimension;
 	array_buffer_view_handlers.unset_dimension = array_buffer_view_unset_dimension;
-#if PHP_VERSION_ID >= 80000
-	array_buffer_view_handlers.compare = array_buffer_view_compare_objects;
-#else
-	array_buffer_view_handlers.compare_objects = array_buffer_view_compare_objects;
-#endif
+	array_buffer_view_handlers.compare = array_buffer_view_compare;
 	array_buffer_view_handlers.get_debug_info  = array_buffer_view_get_debug_info;
 	array_buffer_view_handlers.free_obj        = array_buffer_view_free;
 	array_buffer_view_handlers.get_properties  = array_buffer_view_get_properties;

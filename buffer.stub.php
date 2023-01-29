@@ -1,7 +1,6 @@
 <?php
 /**
  * @generate-function-entries
- * @generate-legacy-arginfo
  */
 
 final class ArrayBuffer implements Serializable {
