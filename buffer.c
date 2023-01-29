@@ -100,19 +100,18 @@ static zend_object *array_buffer_clone(zend_object *object)
 
 PHP_METHOD(ArrayBuffer, __construct)
 {
-	buffer_object *intern;
 	zend_long length;
 
-	if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "l", &length) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_LONG(length)
+	ZEND_PARSE_PARAMETERS_END();
 
 	if (length <= 0) {
 		zend_throw_exception(NULL, "Buffer length must be positive", 0);
 		return;
 	}
 
-	intern = Z_BUFFER_OBJ_P(getThis());
+	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
 
 	intern->buffer = emalloc(length);
 	intern->length = length;
@@ -122,16 +121,13 @@ PHP_METHOD(ArrayBuffer, __construct)
 
 PHP_METHOD(ArrayBuffer, serialize)
 {
-	buffer_object *intern;
 	smart_str buf = {0};
 	php_serialize_data_t var_hash;
 	zval zv;
 
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_NONE();
 
-	intern = Z_BUFFER_OBJ_P(getThis());
+	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
 	if (!intern->buffer) {
 		return;
 	}
@@ -150,7 +146,6 @@ PHP_METHOD(ArrayBuffer, serialize)
 
 PHP_METHOD(ArrayBuffer, unserialize)
 {
-	buffer_object *intern;
 	char *str;
 	size_t str_len;
 	php_unserialize_data_t var_hash;
@@ -158,11 +153,11 @@ PHP_METHOD(ArrayBuffer, unserialize)
 	zval *zbuf;
 	zend_string *zstr;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &str, &str_len) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_STRING(str, str_len)
+	ZEND_PARSE_PARAMETERS_END();
 
-	intern = Z_BUFFER_OBJ_P(getThis());
+	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
 
 	if (intern->buffer) {
 		zend_throw_exception(
@@ -202,9 +197,7 @@ exit:
 
 PHP_METHOD(ArrayBuffer, __serialize)
 {
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_NONE();
 
 	buffer_object *intern = Z_BUFFER_OBJ_P(getThis());
 	array_init(return_value);
@@ -214,9 +207,10 @@ PHP_METHOD(ArrayBuffer, __serialize)
 PHP_METHOD(ArrayBuffer, __unserialize)
 {
 	HashTable *ht;
-	if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "h", &ht) == FAILURE) {
-		return;
-	}
+
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_ARRAY_HT(ht)
+	ZEND_PARSE_PARAMETERS_END();
 
 	zval *data = zend_hash_str_find(ht, "data", strlen("data"));
 	if (!data) {
@@ -585,7 +579,7 @@ const zend_object_iterator_funcs buffer_view_iterator_funcs = {
 	NULL,
 };
 
-zend_object_iterator *buffer_view_get_iterator(zend_class_entry *ce, zval *object, int by_ref)
+static zend_object_iterator *buffer_view_get_iterator(zend_class_entry *ce, zval *object, int by_ref)
 {
 	buffer_view_iterator *iter;
 
@@ -612,15 +606,16 @@ PHP_METHOD(TypedArray, __construct)
 {
 	zval *buffer_zval;
 	zend_long offset = 0, length = 0;
-	buffer_view_object *view_intern;
-	buffer_object *buffer_intern;
 
-	if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "O|ll", &buffer_zval, array_buffer_ce, &offset, &length) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 3)
+		Z_PARAM_OBJECT_OF_CLASS(buffer_zval, array_buffer_ce)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_LONG(offset)
+		Z_PARAM_LONG(length)
+	ZEND_PARSE_PARAMETERS_END();
 
-	view_intern   = Z_BUFFER_VIEW_OBJ_P(getThis());
-	buffer_intern = Z_BUFFER_OBJ_P(buffer_zval);
+	buffer_view_object *view_intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_object *buffer_intern = Z_BUFFER_OBJ_P(buffer_zval);
 
 	if (offset < 0) {
 		zend_throw_exception(NULL, "Offset must be non-negative", 0);
@@ -658,36 +653,33 @@ PHP_METHOD(TypedArray, __construct)
 
 PHP_METHOD(TypedArray, offsetGet)
 {
-	buffer_view_object *intern;
-	long offset;
-	zval retval;
+	zend_long offset;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &offset) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_LONG(offset)
+	ZEND_PARSE_PARAMETERS_END();
 
-	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 
 	if (offset < 0 || offset >= intern->length) {
 		zend_throw_exception(NULL, "Offset is outside the buffer range", 0);
 		return;
 	}
 
-	buffer_view_offset_get(intern, offset, &retval);
-	RETURN_ZVAL(&retval, 1, 0);
+	buffer_view_offset_get(intern, offset, return_value);
 }
 
 PHP_METHOD(TypedArray, offsetSet)
 {
-	buffer_view_object *intern;
-	long offset;
+	zend_long offset;
 	zval *value;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "lz", &offset, &value) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(2, 2)
+		Z_PARAM_LONG(offset)
+		Z_PARAM_ZVAL(value)
+	ZEND_PARSE_PARAMETERS_END();
 
-	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 
 	if (offset < 0 || offset >= intern->length) {
 		zend_throw_exception(NULL, "Offset is outside the buffer range", 0);
@@ -699,25 +691,24 @@ PHP_METHOD(TypedArray, offsetSet)
 
 PHP_METHOD(TypedArray, offsetExists)
 {
-	buffer_view_object *intern;
-	long offset;
+	zend_long offset;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &offset) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_LONG(offset)
+	ZEND_PARSE_PARAMETERS_END();
 
-	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 
 	RETURN_BOOL(offset < intern->length);
 }
 
 PHP_METHOD(TypedArray, offsetUnset)
 {
-	long offset;
+	zend_long offset;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "l", &offset) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_LONG(offset)
+	ZEND_PARSE_PARAMETERS_END();
 
 	/* I don't think that the unset() operations makes sense on typed arrays. If you want
 	 * to zero out an offset just assign 0 to it. */
@@ -726,69 +717,47 @@ PHP_METHOD(TypedArray, offsetUnset)
 
 PHP_METHOD(TypedArray, rewind)
 {
-	buffer_view_object *intern;
+	ZEND_PARSE_PARAMETERS_NONE();
 
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	intern->current_offset = 0;
 }
 
 PHP_METHOD(TypedArray, next)
 {
-	buffer_view_object *intern;
+	ZEND_PARSE_PARAMETERS_NONE();
 
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	intern->current_offset++;
 }
 
 PHP_METHOD(TypedArray, valid)
 {
-	buffer_view_object *intern;
+	ZEND_PARSE_PARAMETERS_NONE();
 
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	RETURN_BOOL(intern->current_offset < intern->length);
 }
 
 PHP_METHOD(TypedArray, key)
 {
-	buffer_view_object *intern;
+	ZEND_PARSE_PARAMETERS_NONE();
 
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	RETURN_LONG((long) intern->current_offset);
 }
 
 PHP_METHOD(TypedArray, current)
 {
-	buffer_view_object *intern;
+	ZEND_PARSE_PARAMETERS_NONE();
 
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
-
-	intern = Z_BUFFER_VIEW_OBJ_P(getThis());
+	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	buffer_view_offset_get(intern, intern->current_offset, return_value);
 }
 
 PHP_METHOD(TypedArray, __serialize)
 {
-	if (zend_parse_parameters_none() == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_NONE();
 
 	buffer_view_object *intern = Z_BUFFER_VIEW_OBJ_P(getThis());
 	array_init(return_value);
@@ -803,9 +772,9 @@ PHP_METHOD(TypedArray, __unserialize)
 {
 	HashTable *ht;
 
-	if (zend_parse_parameters_throw(ZEND_NUM_ARGS(), "h", &ht) == FAILURE) {
-		return;
-	}
+	ZEND_PARSE_PARAMETERS_START(1, 1)
+		Z_PARAM_ARRAY_HT(ht)
+	ZEND_PARSE_PARAMETERS_END();
 
 	zval *buffer_zv = zend_hash_str_find(ht, "buffer", strlen("buffer"));
 	zval *offset_zv = zend_hash_str_find(ht, "offset", strlen("offset"));
