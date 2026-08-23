@@ -66,7 +66,7 @@ jobs:
           copy %prefix%\php_buffer.dll .install
           copy %prefix%\php_buffer.pdb .install
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v7
         with:
           name: buffer-${{matrix.version}}-${{matrix.arch}}-${{matrix.ts}}
           path: .install
