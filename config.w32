@@ -3,6 +3,6 @@
 ARG_ENABLE("buffer", "enable buffer support", "no");
 
 if (PHP_BUFFER != "no") {
-	EXTENSION("buffer", "buffer.c");
+	EXTENSION("buffer", "buffer.c", PHP_BUFFER_SHARED);
 }
 
