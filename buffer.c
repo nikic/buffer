@@ -709,7 +709,7 @@ static PHP_MINIT_FUNCTION(buffer)
 	array_buffer_ce = register_class_ArrayBuffer();
 	array_buffer_ce->create_object = array_buffer_create_object;
 	memcpy(&array_buffer_handlers, zend_get_std_object_handlers(), sizeof(array_buffer_handlers));
-	array_buffer_handlers.offset = XtOffsetOf(buffer_object, std);
+	array_buffer_handlers.offset = offsetof(buffer_object, std);
 	array_buffer_handlers.free_obj  = array_buffer_free;
 	array_buffer_handlers.clone_obj = array_buffer_clone;
 
@@ -732,7 +732,7 @@ static PHP_MINIT_FUNCTION(buffer)
 #undef DEFINE_ARRAY_BUFFER_VIEW_CLASS
 
 	memcpy(&array_buffer_view_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-	array_buffer_view_handlers.offset = XtOffsetOf(buffer_view_object, std);
+	array_buffer_view_handlers.offset = offsetof(buffer_view_object, std);
 	array_buffer_view_handlers.clone_obj       = array_buffer_view_clone;
 	array_buffer_view_handlers.read_dimension  = array_buffer_view_read_dimension;
 	array_buffer_view_handlers.write_dimension = array_buffer_view_write_dimension;
