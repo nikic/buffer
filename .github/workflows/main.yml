@@ -22,9 +22,6 @@ jobs:
       - name: test
         run: make test TESTS="--show-diff tests"
   windows:
-    defaults:
-      run:
-        shell: cmd
     strategy:
       matrix:
           version: ["8.0", "8.1", "8.2"]
