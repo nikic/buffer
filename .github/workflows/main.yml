@@ -4,11 +4,11 @@ jobs:
   ubuntu:
     strategy:
       matrix:
-          version: ["8.0", "8.1", "8.2"]
+          version: ["8.0", "8.1", "8.2", "8.3", "8.4", "8.5"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -33,40 +33,13 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - name: Setup PHP
-        id: setup-php
-        uses: cmb69/setup-php-sdk@v0.6
+        uses: actions/checkout@v6
+      - name: Build and test the extension
+        uses: php/php-windows-builder/extension@v1
         with:
-          version: ${{matrix.version}}
-          arch: ${{matrix.arch}}
-          ts: ${{matrix.ts}}
-      - name: Enable Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{matrix.arch}}
-          toolset: ${{steps.setup-php.outputs.toolset}}
-      - name: phpize
-        run: phpize
-      - name: configure
-        run: configure --enable-buffer --enable-debug-pack --with-prefix=${{steps.setup-php.outputs.prefix}}
-      - name: make
-        run: nmake
-      - name: test
-        run: nmake test TESTS="--show-diff tests"
-      - name: package
-        run: |
-          md .install
-          copy LICENSE .install
-          if exist x64 (
-            if exist x64\Release (set prefix=x64\Release) else set prefix=x64\Release_TS
-          ) else (
-            if exist Release (set prefix=Release) else set prefix=Release_TS
-          )
-          copy %prefix%\php_buffer.dll .install
-          copy %prefix%\php_buffer.pdb .install
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: buffer-${{matrix.version}}-${{matrix.arch}}-${{matrix.ts}}
-          path: .install
+          php-version: ${{ matrix.version }}
+          arch: ${{ matrix.arch }}
+          ts: ${{ matrix.ts }}
+          args: --enable-buffer
+          run-tests: true
+          test-runner-args: "--show-diff tests"
